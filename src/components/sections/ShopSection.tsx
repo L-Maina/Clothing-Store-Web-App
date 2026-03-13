@@ -145,7 +145,7 @@ export function ShopSection() {
           <Link href="/shop">
             <Button
               variant="outline"
-              className="border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-black rounded-none group"
+              className="border-amber-400 text-amber-400 hover:bg-amber-400 hover:text-black hover:border-amber-400 rounded-none group transition-colors"
             >
               VIEW FULL SHOP
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
