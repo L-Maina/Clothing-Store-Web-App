@@ -41,8 +41,9 @@ const navigation = [
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
   { name: 'Community', href: '/admin/community', icon: Image },
-  { name: 'Social Handles', href: '/admin/settings', icon: Share2 },
+  { name: 'Social', href: '/admin/social', icon: Share2 },
   { name: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 // Sample notifications - in production, these would come from the database

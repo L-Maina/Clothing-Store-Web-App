@@ -208,3 +208,35 @@ model AdminUser {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// Store settings (singleton - only one record should exist)
+model StoreSettings {
+  id              String   @id @default(cuid())
+  storeName       String   @default("Clothing Ctrl")
+  storeDescription String?
+  storeEmail      String?
+  storePhone      String?
+  
+  // Address
+  addressLine1    String?
+  addressLine2    String?
+  city            String?  @default("Nairobi")
+  country         String?  @default("Kenya")
+  
+  // Store hours
+  openHour        String?  @default("12:00")
+  closeHour       String?  @default("18:00")
+  openDays        String?  @default("Mon-Sat") // e.g., "Mon-Sat"
+  
+  // Announcement banner
+  bannerEnabled   Boolean  @default(false)
+  bannerText      String?
+  bannerLink      String?
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
