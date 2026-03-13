@@ -162,7 +162,7 @@ export function Hero() {
             <Button
               asChild
               size="lg"
-              className="border border-amber-400 text-amber-400 hover:!bg-amber-400 hover:!text-black font-bold px-8 py-6 text-lg rounded-none transition-colors"
+              className="border-2 border-amber-400 !bg-transparent text-amber-400 hover:!bg-amber-400 hover:!text-black font-bold px-8 py-6 text-lg rounded-none transition-colors"
             >
               <Link href="/new-arrivals">
                 NEW ARRIVALS

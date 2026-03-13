@@ -69,7 +69,7 @@ export default function CheckoutPage() {
             We've sent a confirmation email to {formData.email}
           </p>
           <Link href="/">
-            <Button className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-8 py-4 rounded-none">
+            <Button className="bg-amber-400 hover:!bg-amber-300 text-black font-bold px-8 py-4 rounded-none transition-colors">
               CONTINUE SHOPPING
             </Button>
           </Link>
@@ -84,7 +84,7 @@ export default function CheckoutPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Your cart is empty</h1>
           <Link href="/">
-            <Button className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-8 py-4 rounded-none">
+            <Button className="bg-amber-400 hover:!bg-amber-300 text-black font-bold px-8 py-4 rounded-none transition-colors">
               START SHOPPING
             </Button>
           </Link>
@@ -213,43 +213,72 @@ export default function CheckoutPage() {
                 
                 {/* Payment Options */}
                 <div className="grid sm:grid-cols-3 gap-3 mb-6">
+                  {/* M-Pesa */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('mpesa')}
                     className={cn(
-                      "p-4 border text-center transition-all",
+                      "p-4 border text-center transition-all flex flex-col items-center gap-2",
                       paymentMethod === 'mpesa'
                         ? "border-amber-400 bg-amber-400/10"
                         : "border-white/10 hover:border-white/30"
                     )}
                   >
-                    <span className="text-2xl mb-2 block">📱</span>
+                    <div className="w-16 h-10 bg-green-500 rounded flex items-center justify-center">
+                      <span className="text-white font-bold text-xs tracking-tight">M-PESA</span>
+                    </div>
                     <span className="text-white font-medium text-sm">M-Pesa</span>
                   </button>
+                  
+                  {/* Card */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('card')}
                     className={cn(
-                      "p-4 border text-center transition-all",
+                      "p-4 border text-center transition-all flex flex-col items-center gap-2",
                       paymentMethod === 'card'
                         ? "border-amber-400 bg-amber-400/10"
                         : "border-white/10 hover:border-white/30"
                     )}
                   >
-                    <span className="text-2xl mb-2 block">💳</span>
+                    <div className="flex gap-1 items-center">
+                      {/* Visa Logo */}
+                      <svg className="h-8 w-10" viewBox="0 0 48 32" fill="none">
+                        <rect width="48" height="32" rx="4" fill="#1A1F71"/>
+                        <path d="M19.5 21H17L18.5 11H21L19.5 21Z" fill="white"/>
+                        <path d="M28 11L25.5 18L25 15.5L24 12C24 12 23.8 11 22.5 11H18.5L18.4 11.2C18.4 11.2 20 11.5 21.8 12.5L24 21H26.5L30.5 11H28Z" fill="white"/>
+                        <path d="M32 21L32.5 18L30 18L29.5 21H32Z" fill="white"/>
+                        <path d="M34.5 11C33.5 11 33 11.8 33 11.8L29 21H31.5L32 19.5H35L35.2 21H37.5L35.5 11H34.5ZM32.5 17.5L33.5 14.5L34 17.5H32.5Z" fill="white"/>
+                        <path d="M15 11L12.5 18L12.2 16.5L11 12C11 12 10.8 11 9.5 11H5.1L5 11.2C5 11.2 7 11.6 9.2 13C11 14 12 15.5 12.5 17L11 21H13.5L16 11H15Z" fill="white"/>
+                      </svg>
+                      {/* Mastercard Logo */}
+                      <svg className="h-8 w-10" viewBox="0 0 48 32" fill="none">
+                        <rect width="48" height="32" rx="4" fill="#000"/>
+                        <circle cx="18" cy="16" r="8" fill="#EB001B"/>
+                        <circle cx="30" cy="16" r="8" fill="#F79E1B"/>
+                        <path d="M24 10.5C25.8 12 27 14.3 27 16.8C27 19.3 25.8 21.6 24 23.1C22.2 21.6 21 19.3 21 16.8C21 14.3 22.2 12 24 10.5Z" fill="#FF5F00"/>
+                      </svg>
+                    </div>
                     <span className="text-white font-medium text-sm">Card</span>
                   </button>
+                  
+                  {/* PayPal */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('paypal')}
                     className={cn(
-                      "p-4 border text-center transition-all",
+                      "p-4 border text-center transition-all flex flex-col items-center gap-2",
                       paymentMethod === 'paypal'
                         ? "border-amber-400 bg-amber-400/10"
                         : "border-white/10 hover:border-white/30"
                     )}
                   >
-                    <span className="text-2xl mb-2 block">🅿️</span>
+                    <svg className="h-8 w-16" viewBox="0 0 100 32" fill="none">
+                      <rect width="100" height="32" rx="4" fill="#003087"/>
+                      <path d="M25 10H18C17.5 10 17 10.4 16.9 10.9L14 25C13.9 25.3 14.1 25.5 14.4 25.5H18C18.5 25.5 18.9 25.1 19 24.6L19.8 20H23C26.5 20 29 17.5 29.5 14.5C30 11 27 10 25 10ZM25 14.5C24.8 16 23.5 17 22 17H20.5L21.2 13H23C24 13 25.2 13.5 25 14.5Z" fill="white"/>
+                      <path d="M35 10H28C27.5 10 27 10.4 26.9 10.9L24 25C23.9 25.3 24.1 25.5 24.4 25.5H28C28.5 25.5 28.9 25.1 29 24.6L29.8 20H33C36.5 20 39 17.5 39.5 14.5C40 11 37 10 35 10ZM35 14.5C34.8 16 33.5 17 32 17H30.5L31.2 13H33C34 13 35.2 13.5 35 14.5Z" fill="#009CDE"/>
+                      <path d="M45 10H38L37.9 10.9L40.8 25C40.9 25.3 41.1 25.5 41.4 25.5H45C45.5 25.5 45.9 25.1 46 24.6L48.9 10.9C49 10.6 48.8 10 48.5 10H45ZM43 22L41 13H44L43 22Z" fill="white"/>
+                    </svg>
                     <span className="text-white font-medium text-sm">PayPal</span>
                   </button>
                 </div>
@@ -318,7 +347,7 @@ export default function CheckoutPage() {
               <Button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 rounded-none text-lg"
+                className="w-full bg-amber-400 hover:!bg-amber-300 text-black font-bold py-4 rounded-none text-lg transition-colors"
               >
                 {isProcessing ? (
                   <span className="flex items-center gap-2">
