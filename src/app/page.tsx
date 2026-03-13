@@ -11,6 +11,8 @@ import { CommunityGrid } from '@/components/sections/CommunityGrid';
 import { Newsletter } from '@/components/sections/Newsletter';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { QuickView } from '@/components/products/QuickView';
+import { LoginModal } from '@/components/auth/LoginModal';
+import { WishlistDrawer } from '@/components/wishlist/WishlistDrawer';
 
 export default function Home() {
   // Seed database on first load
@@ -34,6 +36,8 @@ export default function Home() {
       <Navbar />
       <CartDrawer />
       <QuickView />
+      <LoginModal />
+      <WishlistDrawer />
       
       {/* Hero Section */}
       <Hero />

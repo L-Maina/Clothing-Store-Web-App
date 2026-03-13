@@ -232,3 +232,134 @@ export const useCustomerStore = create<CustomerStore>()(
     }
   )
 );
+
+// Wishlist Item
+export interface WishlistItem {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  image: string;
+  brand?: string;
+}
+
+interface WishlistStore {
+  items: WishlistItem[];
+  isOpen: boolean;
+  addToWishlist: (item: Omit<WishlistItem, 'id'>) => void;
+  removeFromWishlist: (productId: string) => void;
+  isInWishlist: (productId: string) => boolean;
+  openWishlist: () => void;
+  closeWishlist: () => void;
+  toggleWishlist: () => void;
+  getTotalItems: () => number;
+}
+
+export const useWishlistStore = create<WishlistStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      isOpen: false,
+      
+      addToWishlist: (item) => {
+        const items = get().items;
+        const exists = items.find(i => i.productId === item.productId);
+        if (!exists) {
+          set({ 
+            items: [...items, { ...item, id: `wishlist-${item.productId}-${Date.now()}` }] 
+          });
+        }
+      },
+      
+      removeFromWishlist: (productId) => {
+        set((state) => ({
+          items: state.items.filter((item) => item.productId !== productId),
+        }));
+      },
+      
+      isInWishlist: (productId) => {
+        return get().items.some((item) => item.productId === productId);
+      },
+      
+      openWishlist: () => set({ isOpen: true }),
+      closeWishlist: () => set({ isOpen: false }),
+      toggleWishlist: () => set((state) => ({ isOpen: !state.isOpen })),
+      
+      getTotalItems: () => get().items.length,
+    }),
+    {
+      name: 'clothing-ctrl-wishlist',
+    }
+  )
+);
+
+// Auth Store
+interface AuthStore {
+  isLoggedIn: boolean;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    phone?: string;
+  } | null;
+  isLoginModalOpen: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+}
+
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set) => ({
+      isLoggedIn: false,
+      user: null,
+      isLoginModalOpen: false,
+      
+      login: async (email, password) => {
+        // Simulate API call - in production, this would hit your auth API
+        // For demo, accept any email/password combination
+        if (email && password) {
+          set({ 
+            isLoggedIn: true, 
+            user: { 
+              id: `user-${Date.now()}`, 
+              email, 
+              name: email.split('@')[0] 
+            },
+            isLoginModalOpen: false 
+          });
+          return true;
+        }
+        return false;
+      },
+      
+      signup: async (name, email, password) => {
+        // Simulate API call
+        if (name && email && password) {
+          set({ 
+            isLoggedIn: true, 
+            user: { 
+              id: `user-${Date.now()}`, 
+              email, 
+              name 
+            },
+            isLoginModalOpen: false 
+          });
+          return true;
+        }
+        return false;
+      },
+      
+      logout: () => set({ isLoggedIn: false, user: null }),
+      
+      openLoginModal: () => set({ isLoginModalOpen: true }),
+      closeLoginModal: () => set({ isLoginModalOpen: false }),
+    }),
+    {
+      name: 'clothing-ctrl-auth',
+      partialize: (state) => ({ isLoggedIn: state.isLoggedIn, user: state.user }),
+    }
+  )
+);

@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag, Search, User, Globe } from 'lucide-react';
-import { useCartStore, useCurrencyStore, CURRENCIES, CurrencyCode } from '@/lib/store';
-import { Button } from '@/components/ui/button';
+import { Menu, X, ShoppingBag, Search, User, Globe, Heart, LogOut, Package } from 'lucide-react';
+import { useCartStore, useCurrencyStore, useAuthStore, useWishlistStore, CURRENCIES, CurrencyCode } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { SearchModal } from '@/components/search/SearchModal';
 
@@ -21,9 +20,15 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
   const { openCart, getTotalItems } = useCartStore();
   const { currency, setCurrency, setRates } = useCurrencyStore();
+  const { isLoggedIn, user, openLoginModal, logout } = useAuthStore();
+  const { openWishlist, getTotalItems: getWishlistItems } = useWishlistStore();
+  
   const totalItems = getTotalItems();
+  const wishlistItems = getWishlistItems();
 
   // Fetch exchange rates on mount
   useEffect(() => {
@@ -140,7 +145,7 @@ export function Navbar() {
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-2 lg:gap-4">
+            <div className="flex items-center gap-1 lg:gap-3">
               {/* Currency Selector */}
               <div className="relative">
                 <button
@@ -185,15 +190,87 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
 
+              {/* Search */}
               <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 text-white/80 hover:text-amber-400 transition-colors"
               >
                 <Search className="w-5 h-5" />
               </button>
-              <button className="hidden lg:flex p-2 text-white/80 hover:text-amber-400 transition-colors">
-                <User className="w-5 h-5" />
+
+              {/* Wishlist */}
+              <button
+                onClick={openWishlist}
+                className="relative p-2 text-white/80 hover:text-amber-400 transition-colors"
+              >
+                <Heart className="w-5 h-5" />
+                {wishlistItems > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                  >
+                    {wishlistItems}
+                  </motion.span>
+                )}
               </button>
+
+              {/* User / Account */}
+              <div className="relative">
+                <button
+                  onClick={() => isLoggedIn ? setIsUserMenuOpen(!isUserMenuOpen) : openLoginModal()}
+                  className="p-2 text-white/80 hover:text-amber-400 transition-colors"
+                >
+                  {isLoggedIn && user ? (
+                    <div className="w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
+                      <span className="text-black text-xs font-bold">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
+                </button>
+
+                {/* User Dropdown Menu */}
+                <AnimatePresence>
+                  {isUserMenuOpen && isLoggedIn && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-2 w-56 bg-zinc-900 border border-white/10 rounded-lg shadow-xl overflow-hidden"
+                    >
+                      <div className="p-3 border-b border-white/10">
+                        <p className="text-white font-medium text-sm">{user?.name}</p>
+                        <p className="text-white/50 text-xs">{user?.email}</p>
+                      </div>
+                      <div className="p-2">
+                        <Link
+                          href="/orders"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+                        >
+                          <Package className="w-4 h-4" />
+                          My Orders
+                        </Link>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg text-sm transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Cart */}
               <button
                 onClick={openCart}
                 className="relative p-2 text-white/80 hover:text-amber-400 transition-colors"
@@ -269,6 +346,53 @@ export function Navbar() {
                   ))}
                 </ul>
 
+                {/* Mobile Auth */}
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  {isLoggedIn ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center">
+                          <span className="text-black font-bold">
+                            {user?.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{user?.name}</p>
+                          <p className="text-white/50 text-sm">{user?.email}</p>
+                        </div>
+                      </div>
+                      <Link
+                        href="/orders"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 text-white/70 hover:text-amber-400 transition-colors"
+                      >
+                        <Package className="w-4 h-4" />
+                        My Orders
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        openLoginModal();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full py-3 bg-amber-400 hover:bg-amber-300 text-black font-bold transition-colors"
+                    >
+                      SIGN IN / SIGN UP
+                    </button>
+                  )}
+                </div>
+
                 {/* Mobile Currency Selector */}
                 <div className="mt-8 pt-6 border-t border-white/10">
                   <p className="text-white/50 text-xs uppercase tracking-wider mb-3">Currency</p>
@@ -317,11 +441,17 @@ export function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Click outside to close currency dropdown */}
+      {/* Click outside to close dropdowns */}
       {isCurrencyOpen && (
         <div 
           className="fixed inset-0 z-40" 
           onClick={() => setIsCurrencyOpen(false)}
+        />
+      )}
+      {isUserMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setIsUserMenuOpen(false)}
         />
       )}
 

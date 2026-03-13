@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Eye, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCartStore, useUIStore, useCurrencyStore } from '@/lib/store';
+import { useCartStore, useUIStore, useCurrencyStore, useWishlistStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 interface Product {
@@ -89,10 +89,10 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState(0);
   const [imageError, setImageError] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
   const { addItem } = useCartStore();
   const { openQuickView } = useUIStore();
   const { formatPrice } = useCurrencyStore();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
 
   const images = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
   const colors = typeof product.colors === 'string' ? JSON.parse(product.colors) : product.colors;
@@ -100,6 +100,8 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   
   const mainImage = images[0] || getFallbackImage(product.name, 0);
   const hoverImage = images[1] || mainImage;
+  
+  const isLiked = isInWishlist(product.id);
 
   const handleAddToCart = () => {
     addItem({
@@ -111,6 +113,20 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       size: sizes[selectedSize] || 'One Size',
       quantity: 1,
     });
+  };
+
+  const handleToggleWishlist = () => {
+    if (isLiked) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: mainImage,
+        brand: product.brand,
+      });
+    }
   };
 
   const handleImageError = () => {
@@ -205,7 +221,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           <button 
             onClick={(e) => {
               e.stopPropagation();
-              setIsLiked(!isLiked);
+              handleToggleWishlist();
             }}
             className={cn(
               "w-9 h-9 backdrop-blur-sm rounded-full flex items-center justify-center transition-all",
