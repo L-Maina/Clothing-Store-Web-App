@@ -4,41 +4,52 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, MapPin, Clock, Truck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
-// Floating fashion items with actual images/icons
-const fashionItems = [
-  { id: 1, type: 'jacket', icon: '🧥', size: 'text-7xl', delay: 0, x: '5%', y: '20%' },
-  { id: 2, type: 'sneaker', icon: '👟', size: 'text-6xl', delay: 0.5, x: '88%', y: '15%' },
-  { id: 3, type: 'chain', icon: '⛓️', size: 'text-5xl', delay: 1, x: '3%', y: '65%' },
-  { id: 4, type: 'cap', icon: '🧢', size: 'text-6xl', delay: 1.5, x: '90%', y: '60%' },
-  { id: 5, type: 'ring', icon: '💍', size: 'text-5xl', delay: 0.3, x: '15%', y: '10%' },
-  { id: 6, type: 'glasses', icon: '🕶️', size: 'text-6xl', delay: 0.8, x: '80%', y: '75%' },
-  { id: 7, type: 'bag', icon: '👜', size: 'text-5xl', delay: 1.2, x: '8%', y: '80%' },
-  { id: 8, type: 'watch', icon: '⌚', size: 'text-5xl', delay: 0.6, x: '92%', y: '35%' },
-  { id: 9, type: 'dress', icon: '👗', size: 'text-6xl', delay: 1.8, x: '20%', y: '45%' },
-  { id: 10, type: 'shirt', icon: '👕', size: 'text-6xl', delay: 0.2, x: '75%', y: '25%' },
-  { id: 11, type: 'pants', icon: '👖', size: 'text-6xl', delay: 1.4, x: '12%', y: '35%' },
-  { id: 12, type: 'shoe', icon: '👠', size: 'text-5xl', delay: 0.9, x: '85%', y: '85%' },
-];
+// Fashion icons for floating elements
+const fashionIcons = ['🧥', '👟', '⛓️', '🧢', '💍', '🕶️', '👜', '⌚', '👗', '👕', '👖', '👠', '🧣', '手套', '🎽', '🩳', '👛', '🎀'];
 
-// Sparkle component
-function Sparkle({ className }: { className?: string }) {
+// Generate random floating fashion items spread across the entire page
+function generateFloatingItems(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    icon: fashionIcons[i % fashionIcons.length],
+    size: Math.random() > 0.6 ? 'text-3xl' : Math.random() > 0.3 ? 'text-4xl' : 'text-2xl',
+    x: Math.random() * 100, // Random x position (0-100%)
+    y: Math.random() * 100, // Random y position (0-100%)
+    delay: Math.random() * 5,
+    duration: 8 + Math.random() * 8,
+    opacity: 0.15 + Math.random() * 0.35,
+  }));
+}
+
+// Floating fashion item that twinkles and floats like a star
+function FloatingFashionItem({ item }: { item: ReturnType<typeof generateFloatingItems>[0] }) {
   return (
     <motion.div
-      className={className}
+      className="absolute pointer-events-none select-none"
+      style={{
+        left: `${item.x}%`,
+        top: `${item.y}%`,
+      }}
+      initial={{ opacity: 0, scale: 0 }}
       animate={{
-        scale: [0, 1, 0],
-        opacity: [0, 1, 0],
-        rotate: [0, 180, 360],
+        opacity: [0, item.opacity, item.opacity * 1.5, item.opacity, 0],
+        scale: [0.5, 1, 1.2, 1, 0.5],
+        rotate: [0, 10, -10, 5, 0],
+        y: [0, -20, 10, -15, 0],
+        x: [0, 10, -5, 8, 0],
       }}
       transition={{
-        duration: 2,
+        duration: item.duration,
         repeat: Infinity,
+        delay: item.delay,
         ease: "easeInOut",
       }}
     >
-      <Sparkles className="w-5 h-5 text-amber-400" />
+      <span className={item.size} style={{ filter: 'drop-shadow(0 0 8px rgba(245,158,11,0.4))' }}>
+        {item.icon}
+      </span>
     </motion.div>
   );
 }
@@ -121,6 +132,9 @@ export function Hero() {
   // Track client-side mount state
   const [mounted, setMounted] = useState(false);
   
+  // Generate floating items only once on client side to avoid hydration mismatch
+  const floatingItems = useMemo(() => generateFloatingItems(25), []);
+  
   useEffect(() => {
     // Use requestAnimationFrame to defer state update
     const raf = requestAnimationFrame(() => {
@@ -173,9 +187,9 @@ export function Hero() {
         />
       </div>
 
-      {/* Floating Fashion Items - More visible now */}
-      {mounted && fashionItems.map((item) => (
-        <FloatingItem key={item.id} item={item} />
+      {/* Floating Fashion Items - Spread across entire page like stars */}
+      {mounted && floatingItems.map((item) => (
+        <FloatingFashionItem key={item.id} item={item} />
       ))}
 
       {/* Animated Lines */}
@@ -204,14 +218,6 @@ export function Hero() {
           delay: 2,
         }}
       />
-
-      {/* Sparkles */}
-      <Sparkle className="absolute top-[15%] left-[10%]" />
-      <Sparkle className="absolute top-[25%] right-[15%]" />
-      <Sparkle className="absolute bottom-[20%] left-[20%]" />
-      <Sparkle className="absolute bottom-[30%] right-[10%]" />
-      <Sparkle className="absolute top-[45%] left-[5%]" />
-      <Sparkle className="absolute top-[55%] right-[8%]" />
 
       {/* Main Content */}
       <motion.div 

@@ -60,55 +60,43 @@ interface Product {
   createdAt: Date;
 }
 
-// Product image with flip effect for admin
+// Product image with hover effect for admin - shows back image on hover
 function ProductImage({ images, name }: { images: string[]; name: string }) {
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const hasMultipleImages = images.length > 1;
   
   return (
     <div 
       className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 relative cursor-pointer"
-      onMouseEnter={() => setIsFlipped(true)}
-      onMouseLeave={() => setIsFlipped(false)}
-      onClick={() => hasMultipleImages && setIsFlipped(!isFlipped)}
-      style={{ perspective: '200px' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Front Image */}
-      <motion.div
-        className="absolute inset-0 w-full h-full"
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.4 }}
-        style={{ backfaceVisibility: 'hidden' }}
-      >
-        <img
-          src={images[0] || '/placeholder.jpg'}
-          alt={name}
-          className="w-full h-full object-cover"
-        />
-      </motion.div>
+      <motion.img
+        src={images[0] || '/placeholder.jpg'}
+        alt={name}
+        className="w-full h-full object-cover"
+        animate={{ opacity: isHovered && hasMultipleImages ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+      />
       
-      {/* Back Image */}
+      {/* Back Image - shows on hover */}
       {hasMultipleImages && (
-        <motion.div
-          className="absolute inset-0 w-full h-full"
-          animate={{ rotateY: isFlipped ? 0 : -180 }}
-          transition={{ duration: 0.4 }}
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          <img
-            src={images[1] || images[0]}
-            alt={`${name} back`}
-            className="w-full h-full object-cover"
-          />
-        </motion.div>
+        <motion.img
+          src={images[1] || images[0]}
+          alt={`${name} back`}
+          className="absolute inset-0 w-full h-full object-cover"
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
+        />
       )}
       
-      {/* Flip indicator */}
+      {/* Hover indicator */}
       <AnimatePresence>
-        {hasMultipleImages && !isFlipped && (
+        {isHovered && hasMultipleImages && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="absolute bottom-0 right-0 bg-black/50 p-0.5 rounded-tl"
           >

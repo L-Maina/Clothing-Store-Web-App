@@ -86,7 +86,6 @@ function isLightColor(color: string): boolean {
 
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState(0);
   const [imageError, setImageError] = useState(false);
@@ -103,6 +102,9 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const backImage = images[1] || images[0] || getFallbackImage(product.name, 1);
   
   const isLiked = isInWishlist(product.id);
+
+  // Check if product has multiple images (for back view)
+  const hasMultipleImages = images.length > 1;
 
   const handleAddToCart = () => {
     addItem({
@@ -142,68 +144,40 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     ? Math.round((1 - product.price / product.compareAt) * 100) 
     : null;
 
-  // Check if product has multiple images
-  const hasMultipleImages = images.length > 1;
-
   return (
     <div className="group">
       <div
         className="relative aspect-[3/4] bg-zinc-900 overflow-hidden cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setIsFlipped(false);
-        }}
-        onClick={() => {
-          if (hasMultipleImages) {
-            setIsFlipped(!isFlipped);
-          }
-        }}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Flip Container */}
-        <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
-          {/* Front of Card */}
-          <motion.div
-            className="absolute inset-0 w-full h-full"
-            initial={{ rotateY: 0 }}
-            animate={{ rotateY: isFlipped ? 180 : 0 }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <img
-              src={displayFrontImage}
-              alt={product.name}
-              onError={handleImageError}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          </motion.div>
+        {/* Front Image - Default view */}
+        <motion.img
+          src={displayFrontImage}
+          alt={product.name}
+          onError={handleImageError}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: isHovered && hasMultipleImages ? 0 : 1 }}
+          transition={{ duration: 0.3 }}
+        />
 
-          {/* Back of Card */}
-          <motion.div
-            className="absolute inset-0 w-full h-full"
-            initial={{ rotateY: -180 }}
-            animate={{ rotateY: isFlipped ? 0 : -180 }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <img
-              src={displayBackImage}
-              alt={`${product.name} back view`}
-              onError={handleImageError}
-              className="w-full h-full object-cover"
-            />
-            
-            {/* Back indicator */}
-            <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-white/80 text-xs flex items-center gap-1">
-              <RotateCw className="w-3 h-3" />
-              BACK VIEW
-            </div>
-          </motion.div>
-        </div>
+        {/* Back Image - Shows on hover */}
+        {hasMultipleImages && (
+          <motion.img
+            src={displayBackImage}
+            alt={`${product.name} back view`}
+            onError={handleImageError}
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
 
-        {/* Flip indicator (shows on hover if multiple images) */}
+        {/* Back view indicator - shows when hovering and has multiple images */}
         <AnimatePresence>
-          {isHovered && hasMultipleImages && !isFlipped && (
+          {isHovered && hasMultipleImages && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -211,7 +185,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-white/80 text-xs flex items-center gap-1"
             >
               <RotateCw className="w-3 h-3" />
-              CLICK TO FLIP
+              BACK VIEW
             </motion.div>
           )}
         </AnimatePresence>

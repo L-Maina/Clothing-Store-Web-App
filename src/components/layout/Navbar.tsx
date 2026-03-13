@@ -139,7 +139,7 @@ export function Navbar() {
             : 'bg-transparent'
         )}
       >
-        <nav className="container mx-auto px-4 lg:px-8">
+        <nav className="container mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Mobile Menu Button */}
             <button
@@ -157,10 +157,10 @@ export function Navbar() {
                 whileTap={{ scale: 0.95 }}
                 className="relative"
               >
-                <span className="text-2xl lg:text-3xl font-black tracking-tighter text-white group-hover:text-amber-400 transition-colors duration-300">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-white group-hover:text-amber-400 transition-colors duration-300">
                   CLOTHING
                 </span>
-                <span className="text-2xl lg:text-3xl font-black tracking-tighter text-amber-400 ml-1">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-amber-400 ml-1">
                   CTRL
                 </span>
               </motion.div>
@@ -180,12 +180,12 @@ export function Navbar() {
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-1 lg:gap-3">
+            <div className="flex items-center gap-0.5 sm:gap-1 lg:gap-3">
               {/* Currency Selector */}
               <div className="relative">
                 <button
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                  className="flex items-center gap-1.5 px-2 py-1.5 text-white/80 hover:text-amber-400 transition-colors text-sm"
+                  className="flex items-center gap-1.5 px-1.5 sm:px-2 py-1.5 text-white/80 hover:text-amber-400 transition-colors text-sm"
                 >
                   <Globe className="w-4 h-4" />
                   <span className="hidden sm:inline">{CURRENCIES[currency].symbol}</span>
@@ -228,19 +228,19 @@ export function Navbar() {
               {/* Search */}
               <button 
                 onClick={() => setIsSearchOpen(true)}
-                className="p-2 text-white/80 hover:text-amber-400 transition-colors"
+                className="p-1.5 sm:p-2 text-white/80 hover:text-amber-400 transition-colors"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Wishlist */}
               <button
                 onClick={openWishlist}
-                className="relative p-2 text-white/80 hover:text-amber-400 transition-colors"
+                className="relative p-1.5 sm:p-2 text-white/80 hover:text-amber-400 transition-colors"
               >
-                <Heart className="w-5 h-5" />
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                 {wishlistItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[9px] sm:text-[10px] font-bold rounded-full flex items-center justify-center">
                     {wishlistItems}
                   </span>
                 )}
@@ -250,16 +250,16 @@ export function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => isLoggedIn ? setIsUserMenuOpen(!isUserMenuOpen) : auth.openLoginModal()}
-                  className="p-2 text-white/80 hover:text-amber-400 transition-colors"
+                  className="p-1.5 sm:p-2 text-white/80 hover:text-amber-400 transition-colors"
                 >
                   {isLoggedIn && user ? (
-                    <div className="w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
-                      <span className="text-black text-xs font-bold">
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 bg-amber-400 rounded-full flex items-center justify-center">
+                      <span className="text-black text-[8px] sm:text-xs font-bold">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   ) : (
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   )}
                 </button>
 
@@ -304,11 +304,11 @@ export function Navbar() {
               {/* Cart */}
               <button
                 onClick={openCart}
-                className="relative p-2 text-white/80 hover:text-amber-400 transition-colors"
+                className="relative p-1.5 sm:p-2 text-white/80 hover:text-amber-400 transition-colors"
               >
-                <ShoppingBag className="w-5 h-5" />
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-amber-400 text-black text-[9px] sm:text-xs font-bold rounded-full flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
