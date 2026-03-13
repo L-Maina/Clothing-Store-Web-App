@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+// @ts-ignore - Force recompile
+import { Prisma } from '@prisma/client';
 
 export async function POST() {
   try {

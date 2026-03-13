@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // Supported currencies with their symbols
-export const CURRENCIES = {
+export const CURRENCIES: Record<string, { symbol: string; name: string; flag: string }> = {
   KES: { symbol: 'KSh', name: 'Kenyan Shilling', flag: '🇰🇪' },
   USD: { symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
   EUR: { symbol: '€', name: 'Euro', flag: '🇪🇺' },
@@ -15,7 +15,7 @@ export const CURRENCIES = {
   CAD: { symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
   AUD: { symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
   JPY: { symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
-} as const;
+};
 
 export type CurrencyCode = keyof typeof CURRENCIES;
 
