@@ -60,8 +60,7 @@ export function CartDrawer() {
                   <p className="text-white/60 mb-4">Your cart is empty</p>
                   <Button
                     onClick={closeCart}
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 rounded-none"
+                    className="border border-white/30 !bg-transparent text-white hover:!bg-white hover:!text-black rounded-none transition-colors"
                   >
                     Continue Shopping
                   </Button>
@@ -162,15 +161,14 @@ export function CartDrawer() {
 
                 {/* Checkout Button */}
                 <Link href="/checkout" onClick={closeCart}>
-                  <Button className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 rounded-none">
+                  <Button className="w-full bg-amber-400 hover:!bg-amber-300 text-black font-bold py-4 rounded-none transition-colors">
                     PROCEED TO CHECKOUT
                   </Button>
                 </Link>
 
                 <Button
                   onClick={closeCart}
-                  variant="outline"
-                  className="w-full border-white/30 text-white hover:bg-white/10 rounded-none"
+                  className="w-full border border-white/30 !bg-transparent text-white hover:!bg-white hover:!text-black rounded-none transition-colors"
                 >
                   Continue Shopping
                 </Button>

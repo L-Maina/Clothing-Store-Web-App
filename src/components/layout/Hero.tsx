@@ -152,7 +152,7 @@ export function Hero() {
             <Button
               asChild
               size="lg"
-              className="bg-white text-black hover:bg-white/90 font-bold px-8 py-6 text-lg rounded-none group"
+              className="bg-white text-black hover:!bg-white/90 font-bold px-8 py-6 text-lg rounded-none group transition-colors"
             >
               <Link href="#shop">
                 SHOP NOW
@@ -162,10 +162,9 @@ export function Hero() {
             <Button
               asChild
               size="lg"
-              variant="outline"
-              className="border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-black font-bold px-8 py-6 text-lg rounded-none"
+              className="border border-amber-400 text-amber-400 hover:!bg-amber-400 hover:!text-black font-bold px-8 py-6 text-lg rounded-none transition-colors"
             >
-              <Link href="#new">
+              <Link href="/new-arrivals">
                 NEW ARRIVALS
               </Link>
             </Button>

@@ -236,7 +236,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         >
           <Button
             onClick={handleAddToCart}
-            className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-3 rounded-none group/btn"
+            className="w-full bg-amber-400 hover:!bg-amber-300 text-black font-bold py-3 rounded-none group/btn transition-colors"
           >
             <Plus className="w-4 h-4 mr-2 group-hover/btn:rotate-90 transition-transform duration-300" />
             ADD TO CART

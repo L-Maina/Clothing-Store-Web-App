@@ -283,7 +283,7 @@ export function QuickView() {
                 <div className="flex gap-3">
                   <Button
                     onClick={handleAddToCart}
-                    className="flex-1 bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 text-lg rounded-none"
+                    className="flex-1 bg-amber-400 hover:!bg-amber-300 text-black font-bold py-4 text-lg rounded-none transition-colors"
                   >
                     ADD TO CART — {formatPrice((product.price as number) * quantity)}
                   </Button>

@@ -61,8 +61,7 @@ export function FeaturedProducts() {
           </div>
           <Button
             asChild
-            variant="outline"
-            className="border-white/30 text-white hover:bg-white/10 rounded-none group self-start md:self-auto"
+            className="border border-white/30 !bg-transparent text-white hover:!bg-white hover:!text-black rounded-none group self-start md:self-auto transition-colors"
           >
             <Link href="#featured">
               View All

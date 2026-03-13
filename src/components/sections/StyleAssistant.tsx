@@ -216,7 +216,7 @@ export function StyleAssistant() {
                 <Button
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="bg-amber-400 hover:bg-amber-300 text-black px-3 rounded-lg disabled:opacity-50"
+                  className="bg-amber-400 hover:!bg-amber-300 text-black px-3 rounded-lg disabled:opacity-50 transition-colors"
                 >
                   <Send className="w-4 h-4" />
                 </Button>

@@ -221,8 +221,7 @@ export default function ShopPage() {
                   setActiveBrand('All');
                   setActiveCondition('All');
                 }}
-                variant="outline"
-                className="mt-4 border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-black"
+                className="mt-4 border border-amber-400/50 !bg-transparent text-amber-400 hover:!bg-amber-400 hover:!text-black transition-colors"
               >
                 Clear Filters
               </Button>
@@ -234,8 +233,7 @@ export default function ShopPage() {
             <div className="flex justify-center mt-12">
               <Button
                 onClick={() => setVisibleCount(prev => prev + 16)}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white hover:text-black px-8 py-6 rounded-none"
+                className="border border-white/20 !bg-transparent text-white hover:!bg-white hover:!text-black px-8 py-6 rounded-none transition-colors"
               >
                 LOAD MORE PRODUCTS
               </Button>
@@ -342,7 +340,7 @@ export default function ShopPage() {
               <div className="sticky bottom-0 p-4 bg-zinc-950 border-t border-white/10">
                 <Button
                   onClick={() => setIsFilterOpen(false)}
-                  className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 rounded-none"
+                  className="w-full bg-amber-400 hover:!bg-amber-300 text-black font-bold py-4 rounded-none transition-colors"
                 >
                   Apply Filters
                 </Button>
