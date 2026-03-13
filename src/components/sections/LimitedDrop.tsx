@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Bell } from 'lucide-react';
+import { ArrowRight, Bell, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CountdownTimer } from '@/components/ui/CountdownTimer';
 
 interface DropData {
   id: string;
@@ -12,6 +11,59 @@ interface DropData {
   description: string;
   date: string;
   image: string;
+}
+
+// Countdown Timer Component
+function CountdownTimer({ targetDate }: { targetDate: Date }) {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = targetDate.getTime() - new Date().getTime();
+      
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  const timeBlocks = [
+    { label: 'DAYS', value: timeLeft.days },
+    { label: 'HOURS', value: timeLeft.hours },
+    { label: 'MINS', value: timeLeft.minutes },
+    { label: 'SECS', value: timeLeft.seconds },
+  ];
+
+  return (
+    <div className="flex gap-3 lg:gap-4">
+      {timeBlocks.map((block, index) => (
+        <div key={block.label} className="flex flex-col items-center">
+          <div className="w-16 lg:w-20 h-16 lg:h-20 bg-zinc-900 border border-white/10 flex items-center justify-center">
+            <span className="text-2xl lg:text-3xl font-black text-white">
+              {String(block.value).padStart(2, '0')}
+            </span>
+          </div>
+          <span className="text-[10px] lg:text-xs text-white/40 mt-2 tracking-wider">
+            {block.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function LimitedDrop() {
@@ -24,12 +76,13 @@ export function LimitedDrop() {
       .then(data => {
         setDrop(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
-      <section id="drop" className="py-16 lg:py-24 bg-black">
+      <section id="drop" className="py-20 lg:py-32 bg-black">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="h-96 bg-zinc-900 animate-pulse" />
         </div>
@@ -40,7 +93,7 @@ export function LimitedDrop() {
   if (!drop) return null;
 
   return (
-    <section id="drop" className="py-16 lg:py-24 bg-zinc-950 relative overflow-hidden">
+    <section id="drop" className="py-20 lg:py-32 bg-zinc-950 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -49,8 +102,17 @@ export function LimitedDrop() {
         }} />
       </div>
 
+      {/* Animated Glow */}
+      <motion.div
+        animate={{
+          opacity: [0.3, 0.5, 0.3],
+        }}
+        transition={{ duration: 4, repeat: Infinity }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl"
+      />
+
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -58,24 +120,25 @@ export function LimitedDrop() {
             viewport={{ once: true }}
             className="order-2 lg:order-1"
           >
-            <div className="inline-flex items-center gap-2 bg-amber-400/10 text-amber-400 px-4 py-2 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-red-500/10 text-red-400 px-4 py-2 text-sm font-medium mb-6 border border-red-500/20">
               <Bell className="w-4 h-4" />
-              UPCOMING DROP
+              EXCLUSIVE DROP
             </div>
 
             <h2 className="text-4xl lg:text-5xl xl:text-6xl font-black text-white tracking-tight mb-4">
               {drop.name}
             </h2>
 
-            <p className="text-white/60 text-lg leading-relaxed mb-8">
+            <p className="text-white/60 text-lg leading-relaxed mb-10">
               {drop.description}
             </p>
 
             {/* Countdown */}
-            <div className="mb-8">
-              <p className="text-white/40 text-sm uppercase tracking-wider mb-4">
+            <div className="mb-10">
+              <div className="flex items-center gap-2 text-white/40 text-sm uppercase tracking-wider mb-4">
+                <Clock className="w-4 h-4" />
                 Drops in
-              </p>
+              </div>
               <CountdownTimer targetDate={new Date(drop.date)} />
             </div>
 
@@ -111,7 +174,7 @@ export function LimitedDrop() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               
               {/* Badge */}
-              <div className="absolute top-4 right-4 bg-amber-400 text-black text-xs font-bold px-3 py-1 tracking-wider">
+              <div className="absolute top-4 right-4 bg-amber-400 text-black text-xs font-bold px-4 py-2 tracking-wider">
                 EXCLUSIVE ACCESS
               </div>
             </div>

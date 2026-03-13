@@ -38,6 +38,52 @@ const getFallbackImage = (productName: string, index: number) => {
   return `https://images.unsplash.com/photo-${1558618666 + seed % 1000000}?w=600&h=800&fit=crop&auto=format`;
 };
 
+// Helper function to get color hex codes - defined before use
+function getColorHex(color: string): string {
+  const colorMap: Record<string, string> = {
+    'white': '#ffffff',
+    'black': '#000000',
+    'cream': '#f5f5dc',
+    'olive': '#708238',
+    'charcoal': '#36454f',
+    'sand': '#c2b280',
+    'burgundy': '#800020',
+    'navy': '#1e3a5f',
+    'tan': '#d2b48c',
+    'khaki': '#c3b091',
+    'grey': '#808080',
+    'gray': '#808080',
+    'gold': '#ffd700',
+    'silver': '#c0c0c0',
+    'red': '#ef4444',
+    'blue': '#3b82f6',
+    'green': '#22c55e',
+    'yellow': '#eab308',
+    'orange': '#f97316',
+    'brown': '#78350f',
+    'beige': '#d4a574',
+    'pink': '#ec4899',
+    'purple': '#a855f7',
+    'green camo': '#4a5d23',
+    'blue camo': '#3d5a80',
+    'white/green': '#f0f5f0',
+    'red/black': '#8b0000',
+    'white/black': '#e8e8e8',
+    'various': '#808080',
+    'one size': '#808080',
+    'multicolor': '#808080',
+  };
+  
+  const lowerColor = color.toLowerCase();
+  return colorMap[lowerColor] || '#888888';
+}
+
+// Check if a color is light (needs dark border)
+function isLightColor(color: string): boolean {
+  const lightColors = ['white', 'cream', 'beige', 'sand', 'tan', 'khaki', 'silver', 'yellow', 'gold', 'multicolor', 'white/green', 'white/black'];
+  return lightColors.includes(color.toLowerCase());
+}
+
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [selectedColor, setSelectedColor] = useState(0);
@@ -212,31 +258,53 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           {product.name}
         </h3>
 
-        {/* Color Options */}
-        {colors && colors.length > 1 && (
-          <div className="flex justify-center gap-1.5 mt-2">
-            {colors.slice(0, 5).map((color: string, idx: number) => (
-              <button
-                key={color}
-                onClick={() => setSelectedColor(idx)}
-                className={cn(
-                  "w-4 h-4 rounded-full border-2 transition-all",
-                  selectedColor === idx ? "border-amber-400 scale-125" : "border-transparent hover:border-white/50"
-                )}
-                style={{
-                  backgroundColor: getColorHex(color)
-                }}
-                title={color}
-              />
-            ))}
-            {colors.length > 5 && (
-              <span className="text-white/40 text-xs flex items-center">+{colors.length - 5}</span>
-            )}
+        {/* Color Options - Interactive */}
+        {colors && colors.length > 0 && (
+          <div className="flex flex-col items-center mt-3">
+            {/* Color Name Display */}
+            <p className="text-white/50 text-xs mb-2 h-4">
+              {colors[selectedColor] || 'Select color'}
+            </p>
+            {/* Color Dots */}
+            <div className="flex justify-center gap-2">
+              {colors.slice(0, 6).map((color: string, idx: number) => (
+                <button
+                  key={`${color}-${idx}`}
+                  onClick={() => setSelectedColor(idx)}
+                  className={cn(
+                    "w-6 h-6 rounded-full transition-all duration-200 flex items-center justify-center",
+                    selectedColor === idx 
+                      ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-black scale-110" 
+                      : "hover:scale-110"
+                  )}
+                  style={{
+                    backgroundColor: getColorHex(color),
+                    border: isLightColor(color) ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                  }}
+                  title={color}
+                >
+                  {selectedColor === idx && (
+                    <motion.div
+                      layoutId="colorCheck"
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        isLightColor(color) ? "bg-black" : "bg-white"
+                      )}
+                    />
+                  )}
+                </button>
+              ))}
+              {colors.length > 6 && (
+                <span className="text-white/40 text-xs flex items-center ml-1">
+                  +{colors.length - 6}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
         {/* Price - Centered */}
-        <div className="flex items-center justify-center gap-2 mt-2">
+        <div className="flex items-center justify-center gap-2 mt-3">
           <span className="text-white font-bold text-base">{formatPrice(product.price)}</span>
           {product.compareAt && (
             <span className="text-white/40 text-sm line-through">{formatPrice(product.compareAt)}</span>
@@ -245,37 +313,4 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       </div>
     </motion.div>
   );
-}
-
-// Helper function to get color hex codes
-function getColorHex(color: string): string {
-  const colorMap: Record<string, string> = {
-    'white': '#ffffff',
-    'black': '#000000',
-    'cream': '#f5f5dc',
-    'olive': '#708238',
-    'charcoal': '#36454f',
-    'sand': '#c2b280',
-    'burgundy': '#800020',
-    'navy': '#000080',
-    'tan': '#d2b48c',
-    'khaki': '#c3b091',
-    'grey': '#808080',
-    'gray': '#808080',
-    'gold': '#ffd700',
-    'silver': '#c0c0c0',
-    'red': '#ef4444',
-    'blue': '#3b82f6',
-    'green': '#22c55e',
-    'yellow': '#eab308',
-    'orange': '#f97316',
-    'brown': '#78350f',
-    'beige': '#d4a574',
-    'pink': '#ec4899',
-    'purple': '#a855f7',
-    'multicolor': 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)',
-  };
-  
-  const lowerColor = color.toLowerCase();
-  return colorMap[lowerColor] || '#888888';
 }

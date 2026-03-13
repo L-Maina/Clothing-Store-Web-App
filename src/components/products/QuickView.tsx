@@ -2,19 +2,66 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, Star } from 'lucide-react';
+import { X, Minus, Plus, Heart, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCartStore, useUIStore } from '@/lib/store';
+import { useCartStore, useUIStore, useCurrencyStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+
+// Helper function to get color hex codes
+function getColorHex(color: string): string {
+  const colorMap: Record<string, string> = {
+    'white': '#ffffff',
+    'black': '#000000',
+    'cream': '#f5f5dc',
+    'olive': '#708238',
+    'charcoal': '#36454f',
+    'sand': '#c2b280',
+    'burgundy': '#800020',
+    'navy': '#1e3a5f',
+    'tan': '#d2b48c',
+    'khaki': '#c3b091',
+    'grey': '#808080',
+    'gray': '#808080',
+    'gold': '#ffd700',
+    'silver': '#c0c0c0',
+    'red': '#ef4444',
+    'blue': '#3b82f6',
+    'green': '#22c55e',
+    'yellow': '#eab308',
+    'orange': '#f97316',
+    'brown': '#78350f',
+    'beige': '#d4a574',
+    'pink': '#ec4899',
+    'purple': '#a855f7',
+    'green camo': '#4a5d23',
+    'blue camo': '#3d5a80',
+    'white/green': '#f0f5f0',
+    'red/black': '#8b0000',
+    'white/black': '#e8e8e8',
+    'various': '#808080',
+    'one size': '#808080',
+    'multicolor': '#808080',
+  };
+  
+  const lowerColor = color.toLowerCase();
+  return colorMap[lowerColor] || '#888888';
+}
+
+function isLightColor(color: string): boolean {
+  const lightColors = ['white', 'cream', 'beige', 'sand', 'tan', 'khaki', 'silver', 'yellow', 'gold', 'multicolor', 'white/green', 'white/black'];
+  return lightColors.includes(color.toLowerCase());
+}
 
 export function QuickView() {
   const { isQuickViewOpen, quickViewProductId, closeQuickView } = useUIStore();
-  const { addItem, closeCart } = useCartStore();
+  const { addItem } = useCartStore();
+  const { formatPrice } = useCurrencyStore();
   const [product, setProduct] = useState<Record<string, unknown> | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     if (quickViewProductId) {
@@ -40,10 +87,6 @@ export function QuickView() {
   const images = typeof product.images === 'string' ? JSON.parse(product.images) : product.images || [];
   const colors = typeof product.colors === 'string' ? JSON.parse(product.colors) : product.colors || [];
   const sizes = typeof product.sizes === 'string' ? JSON.parse(product.sizes) : product.sizes || [];
-  const reviews = (product.reviews as Array<{ rating: number }>) || [];
-  const avgRating = reviews.length > 0 
-    ? reviews.reduce((acc: number, r: { rating: number }) => acc + r.rating, 0) / reviews.length 
-    : 0;
 
   const handleAddToCart = () => {
     addItem({
@@ -51,8 +94,8 @@ export function QuickView() {
       name: product.name as string,
       price: product.price as number,
       image: images[0] || '',
-      color: colors[selectedColor] || '',
-      size: sizes[selectedSize] || '',
+      color: colors[selectedColor] || 'Default',
+      size: sizes[selectedSize] || 'One Size',
       quantity,
     });
     handleClose();
@@ -117,22 +160,11 @@ export function QuickView() {
 
               {/* Info */}
               <div className="p-6 lg:p-8">
-                {/* Rating */}
-                {reviews.length > 0 && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={cn(
-                            "w-4 h-4",
-                            star <= Math.round(avgRating) ? "text-amber-400 fill-amber-400" : "text-white/20"
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-white/60 text-sm">({reviews.length} reviews)</span>
-                  </div>
+                {/* Brand */}
+                {product.brand && (
+                  <p className="text-amber-400 font-medium tracking-wide text-sm mb-2">
+                    {product.brand as string}
+                  </p>
                 )}
 
                 {/* Name */}
@@ -140,11 +172,23 @@ export function QuickView() {
                   {product.name as string}
                 </h2>
 
+                {/* Condition Badge */}
+                {product.condition && (
+                  <span className={cn(
+                    "inline-block text-xs font-bold px-3 py-1 tracking-wider mb-4",
+                    product.condition === 'NEW' ? "bg-amber-400 text-black" :
+                    product.condition === 'THRIFTED' ? "bg-purple-500 text-white" :
+                    "bg-blue-500 text-white"
+                  )}>
+                    {product.condition as string}
+                  </span>
+                )}
+
                 {/* Price */}
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="text-2xl font-bold text-white">KSh {String(product.price)}</span>
-                  {product.compareAt !== null && product.compareAt !== undefined && (
-                    <span className="text-lg text-white/40 line-through">KSh {String(product.compareAt)}</span>
+                  <span className="text-2xl font-bold text-white">{formatPrice(product.price as number)}</span>
+                  {product.compareAt && (
+                    <span className="text-lg text-white/40 line-through">{formatPrice(product.compareAt as number)}</span>
                   )}
                 </div>
 
@@ -153,66 +197,69 @@ export function QuickView() {
                   {product.description as string}
                 </p>
 
-                <div className="mb-4">
-                  <label className="block text-white text-sm font-medium mb-2">
-                    Color: <span className="text-amber-400">{colors[selectedColor]}</span>
-                  </label>
-                  <div className="flex gap-2">
-                    {colors.map((color: string, idx: number) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(idx)}
-                        className={cn(
-                          "w-8 h-8 rounded-full border-2 transition-all",
-                          selectedColor === idx ? "border-amber-400 scale-110" : "border-transparent"
-                        )}
-                        style={{
-                          backgroundColor: color.toLowerCase() === 'white' ? '#fff' : 
-                            color.toLowerCase() === 'black' ? '#000' :
-                            color.toLowerCase() === 'cream' ? '#f5f5dc' :
-                            color.toLowerCase() === 'olive' ? '#708238' :
-                            color.toLowerCase() === 'charcoal' ? '#36454f' :
-                            color.toLowerCase() === 'sand' ? '#c2b280' :
-                            color.toLowerCase() === 'burgundy' ? '#800020' :
-                            color.toLowerCase() === 'navy' ? '#000080' :
-                            color.toLowerCase() === 'tan' ? '#d2b48c' :
-                            color.toLowerCase() === 'khaki' ? '#c3b091' :
-                            color.toLowerCase() === 'grey' ? '#808080' :
-                            color.toLowerCase() === 'gold' ? '#ffd700' :
-                            color.toLowerCase() === 'silver' ? '#c0c0c0' :
-                            '#888'
-                        }}
-                      />
-                    ))}
+                {/* Color */}
+                {colors.length > 0 && (
+                  <div className="mb-4">
+                    <label className="block text-white text-sm font-medium mb-3">
+                      Color: <span className="text-amber-400">{colors[selectedColor]}</span>
+                    </label>
+                    <div className="flex gap-2">
+                      {colors.map((color: string, idx: number) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(idx)}
+                          className={cn(
+                            "w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center",
+                            selectedColor === idx 
+                              ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-black" 
+                              : "hover:scale-110"
+                          )}
+                          style={{
+                            backgroundColor: getColorHex(color),
+                            border: isLightColor(color) ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                          }}
+                          title={color}
+                        >
+                          {selectedColor === idx && (
+                            <div className={cn(
+                              "w-2 h-2 rounded-full",
+                              isLightColor(color) ? "bg-black" : "bg-white"
+                            )} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Size */}
-                <div className="mb-6">
-                  <label className="block text-white text-sm font-medium mb-2">
-                    Size: <span className="text-amber-400">{sizes[selectedSize]}</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {sizes.map((size: string, idx: number) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(idx)}
-                        className={cn(
-                          "min-w-12 h-10 px-3 border text-sm font-medium transition-all",
-                          selectedSize === idx 
-                            ? "bg-amber-400 text-black border-amber-400" 
-                            : "bg-transparent text-white border-white/30 hover:border-white"
-                        )}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                {sizes.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-white text-sm font-medium mb-3">
+                      Size: <span className="text-amber-400">{sizes[selectedSize]}</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {sizes.map((size: string, idx: number) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(idx)}
+                          className={cn(
+                            "min-w-12 h-10 px-3 border text-sm font-medium transition-all",
+                            selectedSize === idx 
+                              ? "bg-amber-400 text-black border-amber-400" 
+                              : "bg-transparent text-white border-white/30 hover:border-white"
+                          )}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Quantity */}
                 <div className="mb-6">
-                  <label className="block text-white text-sm font-medium mb-2">Quantity</label>
+                  <label className="block text-white text-sm font-medium mb-3">Quantity</label>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-white/30">
                       <button
@@ -232,13 +279,29 @@ export function QuickView() {
                   </div>
                 </div>
 
-                {/* Add to Cart */}
-                <Button
-                  onClick={handleAddToCart}
-                  className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 text-lg rounded-none"
-                >
-                  ADD TO CART — KSh {((product.price as number) * quantity).toLocaleString()}
-                </Button>
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    className="flex-1 bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 text-lg rounded-none"
+                  >
+                    ADD TO CART — {formatPrice((product.price as number) * quantity)}
+                  </Button>
+                  <button 
+                    onClick={() => setIsLiked(!isLiked)}
+                    className={cn(
+                      "w-12 h-12 flex items-center justify-center border transition-colors",
+                      isLiked 
+                        ? "bg-red-500 border-red-500 text-white" 
+                        : "border-white/30 text-white hover:border-amber-400 hover:text-amber-400"
+                    )}
+                  >
+                    <Heart className={cn("w-5 h-5", isLiked && "fill-current")} />
+                  </button>
+                  <button className="w-12 h-12 border border-white/30 text-white hover:border-amber-400 hover:text-amber-400 flex items-center justify-center transition-colors">
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                </div>
 
                 {/* Limited Badge */}
                 {product.isLimited && (

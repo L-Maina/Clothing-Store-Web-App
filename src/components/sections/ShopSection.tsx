@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, Footprints, Gem, ChevronDown, Filter, X } from 'lucide-react';
+import { Shirt, Footprints, Gem, ChevronDown, Filter, X, ArrowRight } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -36,14 +36,14 @@ const typeTabs = [
 ];
 
 const subcategories = {
-  CLOTHES: ['All', 'T-Shirts', 'Hoodies', 'Jackets', 'Pants', 'Jeans', 'Shorts', 'Sweaters', 'Dresses', 'Suits'],
-  SHOES: ['All', 'Sneakers', 'Boots', 'Loafers', 'Sandals', 'Heels', 'Athletic'],
-  ACCESSORIES: ['All', 'Bags', 'Belts', 'Wallets', 'Ties', 'Chains', 'Sunglasses', 'Hats', 'Watches', 'Earrings'],
+  CLOTHES: ['All', 'T-Shirts', 'Hoodies', 'Jackets', 'Pants', 'Shorts'],
+  SHOES: ['All', 'Sneakers', 'Boots', 'Loafers'],
+  ACCESSORIES: ['All', 'Bags', 'Belts', 'Wallets', 'Chains', 'Hats'],
 };
 
 const brandFilters = [
   'All', 'Gucci', 'Prada', 'Balenciaga', 'Bape', 'Diesel', 
-  'Chrome Hearts', 'Carhartt', 'Nike', 'Adidas', 'Other'
+  'Chrome Hearts', 'Carhartt', 'Nike', 'Other'
 ];
 
 const conditionFilters = ['All', 'New', 'Thrifting', 'Custom'];
@@ -120,7 +120,7 @@ export function ShopSection() {
   }, [activeTab]);
 
   return (
-    <section id="shop" className="py-20 lg:py-32 bg-black">
+    <section className="py-20 lg:py-32 bg-black">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -166,7 +166,7 @@ export function ShopSection() {
 
         {/* Subcategory Pills & Filter Toggle */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-          {subcategories[activeTab].slice(0, 6).map((sub) => (
+          {subcategories[activeTab].map((sub) => (
             <button
               key={sub}
               onClick={() => setActiveSubcategory(sub)}
@@ -181,15 +181,13 @@ export function ShopSection() {
             </button>
           ))}
           
-          {subcategories[activeTab].length > 6 && (
-            <button
-              onClick={() => setIsFilterOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 text-white/70 hover:text-white hover:bg-zinc-800"
-            >
-              <Filter className="w-4 h-4" />
-              More Filters
-            </button>
-          )}
+          <button
+            onClick={() => setIsFilterOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 text-white/70 hover:text-white hover:bg-zinc-800"
+          >
+            <Filter className="w-4 h-4" />
+            More Filters
+          </button>
         </div>
 
         {/* Products Grid */}

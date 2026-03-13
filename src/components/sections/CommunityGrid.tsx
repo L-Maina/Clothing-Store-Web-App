@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Instagram } from 'lucide-react';
+import { Instagram, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CommunityPhoto {
   id: string;
@@ -18,20 +19,21 @@ export function CommunityGrid() {
     fetch('/api/community')
       .then(res => res.json())
       .then(data => {
-        setPhotos(data);
+        setPhotos(Array.isArray(data) ? data : []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   return (
-    <section id="community" className="py-16 lg:py-24 bg-black">
+    <section id="community" className="py-20 lg:py-32 bg-black">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-2 text-amber-400 mb-4">
             <Instagram className="w-5 h-5" />
@@ -40,9 +42,17 @@ export function CommunityGrid() {
           <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight mb-4">
             #CTRLSTYLE
           </h2>
-          <p className="text-white/60 max-w-md mx-auto">
+          <p className="text-white/60 max-w-md mx-auto mb-6">
             Tag us in your fits for a chance to be featured. Show us how you style your favorite pieces.
           </p>
+          <Button
+            variant="outline"
+            className="border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-black rounded-none group"
+          >
+            <Instagram className="w-4 h-4 mr-2" />
+            FOLLOW US
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </motion.div>
 
         {/* Grid */}
@@ -52,12 +62,14 @@ export function CommunityGrid() {
               <div key={i} className="aspect-square bg-zinc-900 animate-pulse" />
             ))}
           </div>
-        ) : (
+        ) : photos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             {photos.map((photo, index) => (
               <motion.a
                 key={photo.id}
-                href="#"
+                href="https://www.instagram.com/clothing.ctrl"
+                target="_blank"
+                rel="noopener noreferrer"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -66,7 +78,7 @@ export function CommunityGrid() {
                 className="relative aspect-square group overflow-hidden bg-zinc-900"
               >
                 <img
-                  src={photo.imageUrl || `https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&h=400&fit=crop&sig=${index}`}
+                  src={photo.imageUrl}
                   alt={`Style by ${photo.username}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
@@ -81,23 +93,11 @@ export function CommunityGrid() {
               </motion.a>
             ))}
           </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-white/60">Be the first to tag us in your fit!</p>
+          </div>
         )}
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mt-8"
-        >
-          <a
-            href="#"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-amber-400 font-medium transition-colors"
-          >
-            <Instagram className="w-4 h-4" />
-            Follow us on Instagram
-          </a>
-        </motion.div>
       </div>
     </section>
   );

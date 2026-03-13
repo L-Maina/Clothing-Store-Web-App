@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Trash2, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore, useCurrencyStore } from '@/lib/store';
 
@@ -126,7 +126,8 @@ export function CartDrawer() {
             {items.length > 0 && (
               <div className="p-4 border-t border-white/10 space-y-4">
                 {/* Shipping Notice */}
-                <div className="bg-amber-400/10 border border-amber-400/20 p-3 rounded">
+                <div className="bg-amber-400/10 border border-amber-400/20 p-3 flex items-start gap-3">
+                  <Truck className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                   <p className="text-amber-400 text-xs">
                     🌍 We ship worldwide from Nairobi, Kenya
                   </p>

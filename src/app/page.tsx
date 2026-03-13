@@ -10,6 +10,7 @@ import { LimitedDrop } from '@/components/sections/LimitedDrop';
 import { CommunityGrid } from '@/components/sections/CommunityGrid';
 import { Newsletter } from '@/components/sections/Newsletter';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { QuickView } from '@/components/products/QuickView';
 
 export default function Home() {
   // Seed database on first load
@@ -21,7 +22,7 @@ export default function Home() {
         if (data.success) {
           console.log('Database seeded successfully');
         }
-      } catch (error) {
+      } catch {
         console.log('Database may already be seeded');
       }
     };
@@ -32,21 +33,30 @@ export default function Home() {
     <main className="min-h-screen bg-black flex flex-col">
       <Navbar />
       <CartDrawer />
+      <QuickView />
       
       {/* Hero Section */}
       <Hero />
       
       {/* Shop Section with Tabs */}
-      <ShopSection />
+      <section id="shop">
+        <ShopSection />
+      </section>
       
       {/* New Arrivals */}
-      <NewArrivals />
+      <section id="new">
+        <NewArrivals />
+      </section>
       
       {/* Limited Drop Countdown */}
-      <LimitedDrop />
+      <section id="drop">
+        <LimitedDrop />
+      </section>
       
       {/* Community Photos */}
-      <CommunityGrid />
+      <section id="community">
+        <CommunityGrid />
+      </section>
       
       {/* Newsletter Signup */}
       <Newsletter />

@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ProductGrid } from '@/components/products/ProductGrid';
+import { ArrowRight } from 'lucide-react';
+import { ProductCard } from '@/components/products/ProductCard';
+import { Button } from '@/components/ui/button';
 
 interface Product {
   id: string;
@@ -10,9 +12,9 @@ interface Product {
   slug: string;
   price: number;
   compareAt?: number | null;
-  images: string;
-  colors: string;
-  sizes: string;
+  images: string | string[];
+  colors: string | string[];
+  sizes: string | string[];
   isNew?: boolean;
   isLimited?: boolean;
   limitedQty?: number | null;
@@ -29,7 +31,7 @@ export function NewArrivals() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/products?new=true')
+    fetch('/api/products?isNew=true')
       .then(res => res.json())
       .then(data => {
         setProducts(Array.isArray(data) ? data : []);
@@ -39,38 +41,59 @@ export function NewArrivals() {
   }, []);
 
   return (
-    <section id="new" className="py-16 lg:py-24 bg-zinc-950">
-      <div className="container mx-auto px-4 lg:px-8">
+    <section className="py-20 lg:py-32 bg-zinc-950 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+          backgroundSize: '40px 40px',
+        }} />
+      </div>
+
+      <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-10"
-        >
-          <p className="text-amber-400 font-medium tracking-wider text-sm uppercase mb-2">
-            Fresh From The Store
-          </p>
-          <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight mb-4">
-            NEW ARRIVALS
-          </h2>
-          <p className="text-white/60 max-w-md mx-auto">
-            The latest pieces from luxury, streetwear & thrifted collections.
-          </p>
-        </motion.div>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <p className="text-amber-400 font-medium tracking-wider text-sm uppercase mb-2">
+              Fresh From The Store
+            </p>
+            <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight">
+              NEW ARRIVALS
+            </h2>
+            <p className="text-white/60 mt-2 max-w-md">
+              The latest pieces from luxury, streetwear & thrifted collections.
+            </p>
+          </motion.div>
+          
+          <Button
+            variant="outline"
+            className="border-white/30 text-white hover:bg-white hover:text-black rounded-none self-start md:self-auto group"
+          >
+            VIEW ALL NEW
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </div>
 
         {/* Products */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="aspect-[3/4] bg-zinc-900 animate-pulse" />
             ))}
           </div>
         ) : products.length > 0 ? (
-          <ProductGrid products={products} columns={4} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+            {products.slice(0, 4).map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-white/60">No new arrivals yet. Check back soon!</p>
+          <div className="text-center py-20">
+            <p className="text-white/60">No new arrivals at the moment. Check back soon!</p>
           </div>
         )}
       </div>
