@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag, Search, User, Globe, Heart, LogOut, Package } from 'lucide-react';
+import { Menu, X, ShoppingBag, Search, User, Globe, Heart, LogOut, Package, Instagram, Twitter, Facebook, Youtube } from 'lucide-react';
 import { useCartStore, useCurrencyStore, useAuthStore, useWishlistStore, CURRENCIES, CurrencyCode } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,13 @@ const navLinks = [
   { href: '/drops', label: 'Drops' },
   { href: '/community', label: 'Community' },
 ];
+
+interface SocialHandle {
+  id: string;
+  platform: string;
+  handle: string;
+  url: string | null;
+}
 
 // Custom hook to safely access client-only values
 function useMounted() {
@@ -42,6 +49,7 @@ export function Navbar() {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialHandle[]>([]);
   const mounted = useMounted();
   
   const { openCart, getTotalItems } = useCartStore();
@@ -128,6 +136,20 @@ export function Navbar() {
       document.body.style.overflow = 'unset';
     }
   }, [isMobileMenuOpen]);
+
+  // Fetch social links
+  useEffect(() => {
+    const fetchSocialLinks = async () => {
+      try {
+        const response = await fetch('/api/social');
+        const data = await response.json();
+        setSocialLinks(data.handles || []);
+      } catch (error) {
+        console.error('Failed to fetch social links:', error);
+      }
+    };
+    fetchSocialLinks();
+  }, []);
 
   return (
     <>
@@ -445,22 +467,38 @@ export function Navbar() {
               <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
                 <p className="text-white/60 text-sm mb-4">Follow us</p>
                 <div className="flex gap-4">
-                  <a 
-                    href="https://www.instagram.com/clothing.ctrl" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-white/60 hover:text-amber-400 transition-colors text-sm"
-                  >
-                    Instagram
-                  </a>
-                  <a 
-                    href="https://www.tiktok.com/@clothing.ctrl" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-white/60 hover:text-amber-400 transition-colors text-sm"
-                  >
-                    TikTok
-                  </a>
+                  {socialLinks.length > 0 ? (
+                    socialLinks.map((link) => (
+                      <a 
+                        key={link.id}
+                        href={link.url || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-white/60 hover:text-amber-400 transition-colors text-sm capitalize"
+                      >
+                        {link.platform}
+                      </a>
+                    ))
+                  ) : (
+                    <>
+                      <a 
+                        href="https://www.instagram.com/clothing.ctrl" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-white/60 hover:text-amber-400 transition-colors text-sm"
+                      >
+                        Instagram
+                      </a>
+                      <a 
+                        href="https://www.tiktok.com/@clothing.ctrl" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-white/60 hover:text-amber-400 transition-colors text-sm"
+                      >
+                        TikTok
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
