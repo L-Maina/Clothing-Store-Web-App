@@ -124,7 +124,7 @@ export function Footer() {
         </div>
 
         {/* Worldwide Shipping Banner */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center pb-20 md:pb-4">
           <p className="text-white/30 text-xs">
             🌍 Worldwide Shipping Available • Authentic Guaranteed • Nairobi, Kenya
           </p>
