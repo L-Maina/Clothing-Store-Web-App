@@ -23,8 +23,13 @@ export function StyleAssistant() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId] = useState(() => `session-${Date.now()}`);
+  const [sessionId, setSessionId] = useState<string>('session-init');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Generate session ID only on client to avoid hydration mismatch
+  useEffect(() => {
+    setSessionId(`session-${Date.now()}`);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -98,8 +103,8 @@ export function StyleAssistant() {
     <>
       {/* Floating Button */}
       <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
         onClick={() => setIsOpen(true)}
         className={cn(

@@ -24,12 +24,7 @@ export function Newsletter() {
       </div>
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-2xl mx-auto text-center"
-        >
+        <div className="max-w-2xl mx-auto text-center">
           {/* Icon */}
           <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-400/10 rounded-full mb-6 border border-amber-400/20">
             <Mail className="w-8 h-8 text-amber-400" />
@@ -44,15 +39,11 @@ export function Newsletter() {
           </p>
 
           {submitted ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-6 max-w-md mx-auto"
-            >
+            <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-6 max-w-md mx-auto">
               <Gift className="w-8 h-8 mx-auto mb-3" />
               <p className="font-medium text-lg">You&apos;re on the list!</p>
               <p className="text-sm text-green-400/60 mt-2">Check your inbox for your 15% off code.</p>
-            </motion.div>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto">
               <div className="flex flex-col sm:flex-row gap-0 bg-zinc-900 border border-white/10 overflow-hidden">
@@ -94,7 +85,7 @@ export function Newsletter() {
               <span>Member-only sales</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

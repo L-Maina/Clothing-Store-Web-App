@@ -2,11 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ShoppingBag, Search, User, Globe, Heart, LogOut, Package } from 'lucide-react';
 import { useCartStore, useCurrencyStore, useAuthStore, useWishlistStore, CURRENCIES, CurrencyCode } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { SearchModal } from '@/components/search/SearchModal';
+
+// Lazy load SearchModal - only load when needed
+const SearchModal = dynamic(
+  () => import('@/components/search/SearchModal').then((mod) => mod.SearchModal),
+  { ssr: false }
+);
 
 const navLinks = [
   { href: '/shop', label: 'Shop' },
@@ -15,65 +21,96 @@ const navLinks = [
   { href: '/community', label: 'Community' },
 ];
 
+// Custom hook to safely access client-only values
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    // Use requestAnimationFrame to defer state update
+    const raf = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  
+  return mounted;
+}
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const mounted = useMounted();
   
   const { openCart, getTotalItems } = useCartStore();
   const { currency, setCurrency, setRates } = useCurrencyStore();
-  const { isLoggedIn, user, openLoginModal, logout } = useAuthStore();
+  const auth = useAuthStore();
   const { openWishlist, getTotalItems: getWishlistItems } = useWishlistStore();
   
-  const totalItems = getTotalItems();
-  const wishlistItems = getWishlistItems();
+  // Only show badge counts and auth state after mount to avoid hydration mismatch
+  const totalItems = mounted ? getTotalItems() : 0;
+  const wishlistItems = mounted ? getWishlistItems() : 0;
+  const isLoggedIn = mounted ? auth.isLoggedIn : false;
+  const user = mounted ? auth.user : null;
 
-  // Fetch exchange rates on mount
+  // Defer non-critical API calls until after initial render
   useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        const response = await fetch('/api/currency');
-        const data = await response.json();
-        if (data.success && data.rates) {
-          setRates(data.rates);
-        }
-      } catch (error) {
-        console.error('Failed to fetch exchange rates:', error);
-      }
-    };
-    fetchRates();
-  }, [setRates]);
-
-  // Detect user location on first visit
-  useEffect(() => {
-    const detectLocation = async () => {
-      const stored = localStorage.getItem('clothing-ctrl-currency-detected');
-      if (!stored) {
+    // Use requestIdleCallback for non-critical operations
+    const deferredFetch = () => {
+      // Fetch exchange rates (non-critical, can be deferred)
+      const fetchRates = async () => {
         try {
-          const response = await fetch('https://ipapi.co/json/');
+          const response = await fetch('/api/currency');
           const data = await response.json();
-          const countryCode = data.country_code;
-          
-          // Map country to currency
-          const countryToCurrency: Record<string, CurrencyCode> = {
-            'KE': 'KES', 'US': 'USD', 'GB': 'GBP', 'EU': 'EUR',
-            'AE': 'AED', 'ZA': 'ZAR', 'UG': 'UGX', 'TZ': 'TZS',
-            'NG': 'NGN', 'CA': 'CAD', 'AU': 'AUD', 'JP': 'JPY',
-          };
-          
-          const detectedCurrency = countryToCurrency[countryCode] || 'KES';
-          setCurrency(detectedCurrency);
-          localStorage.setItem('clothing-ctrl-currency-detected', 'true');
-        } catch {
-          // Default to KES if detection fails
-          setCurrency('KES');
+          if (data.success && data.rates) {
+            setRates(data.rates);
+          }
+        } catch (error) {
+          console.error('Failed to fetch exchange rates:', error);
         }
-      }
+      };
+
+      // Detect user location on first visit (non-critical)
+      const detectLocation = async () => {
+        const stored = localStorage.getItem('clothing-ctrl-currency-detected');
+        if (!stored) {
+          try {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            const countryCode = data.country_code;
+            
+            // Map country to currency
+            const countryToCurrency: Record<string, CurrencyCode> = {
+              'KE': 'KES', 'US': 'USD', 'GB': 'GBP', 'EU': 'EUR',
+              'AE': 'AED', 'ZA': 'ZAR', 'UG': 'UGX', 'TZ': 'TZS',
+              'NG': 'NGN', 'CA': 'CAD', 'AU': 'AUD', 'JP': 'JPY',
+            };
+            
+            const detectedCurrency = countryToCurrency[countryCode] || 'KES';
+            setCurrency(detectedCurrency);
+            localStorage.setItem('clothing-ctrl-currency-detected', 'true');
+          } catch {
+            // Default to KES if detection fails
+            setCurrency('KES');
+          }
+        }
+      };
+
+      fetchRates();
+      detectLocation();
     };
-    detectLocation();
-  }, [setCurrency]);
+
+    // Defer using requestIdleCallback or setTimeout fallback
+    if ('requestIdleCallback' in window) {
+      const idleCallbackId = requestIdleCallback(deferredFetch, { timeout: 2000 });
+      return () => cancelIdleCallback(idleCallbackId);
+    } else {
+      const timeoutId = setTimeout(deferredFetch, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [setRates, setCurrency]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,9 +131,7 @@ export function Navbar() {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
+      <header
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
           isScrolled 
@@ -205,20 +240,16 @@ export function Navbar() {
               >
                 <Heart className="w-5 h-5" />
                 {wishlistItems > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
-                  >
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {wishlistItems}
-                  </motion.span>
+                  </span>
                 )}
               </button>
 
               {/* User / Account */}
               <div className="relative">
                 <button
-                  onClick={() => isLoggedIn ? setIsUserMenuOpen(!isUserMenuOpen) : openLoginModal()}
+                  onClick={() => isLoggedIn ? setIsUserMenuOpen(!isUserMenuOpen) : auth.openLoginModal()}
                   className="p-2 text-white/80 hover:text-amber-400 transition-colors"
                 >
                   {isLoggedIn && user ? (
@@ -256,7 +287,7 @@ export function Navbar() {
                         </Link>
                         <button
                           onClick={() => {
-                            logout();
+                            auth.logout();
                             setIsUserMenuOpen(false);
                           }}
                           className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg text-sm transition-colors"
@@ -277,19 +308,15 @@ export function Navbar() {
               >
                 <ShoppingBag className="w-5 h-5" />
                 {totalItems > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center justify-center"
-                  >
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center justify-center">
                     {totalItems}
-                  </motion.span>
+                  </span>
                 )}
               </button>
             </div>
           </div>
         </nav>
-      </motion.header>
+      </header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -371,7 +398,7 @@ export function Navbar() {
                       </Link>
                       <button
                         onClick={() => {
-                          logout();
+                          auth.logout();
                           setIsMobileMenuOpen(false);
                         }}
                         className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
@@ -383,7 +410,7 @@ export function Navbar() {
                   ) : (
                     <button
                       onClick={() => {
-                        openLoginModal();
+                        auth.openLoginModal();
                         setIsMobileMenuOpen(false);
                       }}
                       className="w-full py-3 bg-amber-400 hover:bg-amber-300 text-black font-bold transition-colors"

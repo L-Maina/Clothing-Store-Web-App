@@ -45,7 +45,24 @@ local-*
 dev.log
 test
 prompt
+worklog.md
 
 server.log
+
 # Skills directory
 /skills/
+
+# Upload folder
+/upload/
+
+# Database
+/db/
+
+# Examples
+/examples/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

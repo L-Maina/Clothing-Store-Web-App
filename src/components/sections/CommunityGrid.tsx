@@ -30,12 +30,7 @@ export function CommunityGrid() {
     <section id="community" className="py-20 lg:py-32 bg-black">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 text-amber-400 mb-4">
             <Instagram className="w-5 h-5" />
             <span className="font-medium tracking-wider text-sm uppercase">@clothingctrl</span>
@@ -68,7 +63,7 @@ export function CommunityGrid() {
               </Button>
             </a>
           </div>
-        </motion.div>
+        </div>
 
         {/* Grid */}
         {loading ? (
@@ -79,18 +74,13 @@ export function CommunityGrid() {
           </div>
         ) : photos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {photos.map((photo, index) => (
-              <motion.a
+            {photos.map((photo) => (
+              <a
                 key={photo.id}
                 href="https://www.instagram.com/clothing.ctrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02 }}
-                className="relative aspect-square group overflow-hidden bg-zinc-900"
+                className="relative aspect-square group overflow-hidden bg-zinc-900 hover:scale-[1.02] transition-transform duration-300"
               >
                 <img
                   src={photo.imageUrl}
@@ -105,7 +95,7 @@ export function CommunityGrid() {
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <span className="text-white font-medium text-sm">{photo.username}</span>
                 </div>
-              </motion.a>
+              </a>
             ))}
           </div>
         ) : (

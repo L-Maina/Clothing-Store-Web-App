@@ -115,12 +115,7 @@ export function LimitedDrop() {
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="order-2 lg:order-1"
-          >
+          <div className="order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 bg-red-500/10 text-red-400 px-4 py-2 text-sm font-medium mb-6 border border-red-500/20">
               <Bell className="w-4 h-4" />
               EXCLUSIVE DROP
@@ -157,15 +152,10 @@ export function LimitedDrop() {
                 GET NOTIFIED
               </Button>
             </div>
-          </motion.div>
+          </div>
 
           {/* Image */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="order-1 lg:order-2 relative"
-          >
+          <div className="order-1 lg:order-2 relative">
             <div className="aspect-square lg:aspect-[4/5] relative overflow-hidden">
               <img
                 src={drop.image || 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=800&h=1000&fit=crop'}
@@ -184,7 +174,7 @@ export function LimitedDrop() {
             {/* Decorative Elements */}
             <div className="absolute -bottom-4 -left-4 w-32 h-32 border-2 border-amber-400/30" />
             <div className="absolute -top-4 -right-4 w-32 h-32 border-2 border-amber-400/30" />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

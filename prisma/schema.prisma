@@ -186,3 +186,25 @@ model ExchangeRate {
   rate        Float    // Rate relative to KES
   updatedAt   DateTime @default(now())
 }
+
+// Social media handles for the store
+model SocialHandle {
+  id          String   @id @default(cuid())
+  platform    String   @unique // instagram, tiktok, twitter, facebook, etc.
+  handle      String   // @clothingctrl or username
+  url         String?  // Full URL to profile
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Admin users
+model AdminUser {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  password    String   // Hashed password
+  role        String   @default("ADMIN") // ADMIN, SUPER_ADMIN
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

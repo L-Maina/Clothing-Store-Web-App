@@ -53,42 +53,22 @@ export function Hero() {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 lg:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="max-w-5xl mx-auto"
-        >
+        <div className="max-w-5xl mx-auto">
           {/* Store Location Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center justify-center gap-2 text-white/50 text-sm mb-8"
-          >
+          <div className="flex items-center justify-center gap-2 text-white/50 text-sm mb-8">
             <MapPin className="w-4 h-4" />
             <span>Nairobi CBD • Cargen House, Harambee Ave • Rm 310</span>
-          </motion.div>
+          </div>
 
           {/* Custom Nameplate Logo */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="relative mb-8"
-          >
+          <div className="relative mb-8">
             <div className="inline-block">
               {/* Main Logo Text */}
               <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-tight">
                 <span className="block text-white relative">
                   CLOTHING
                   {/* Decorative underline */}
-                  <motion.div
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.8, duration: 0.6 }}
-                    className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent"
-                  />
+                  <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
                 </span>
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 mt-2">
                   CTRL
@@ -102,36 +82,21 @@ export function Hero() {
                 <div className="h-px w-16 bg-gradient-to-l from-transparent to-white/30" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-white/60 text-lg lg:text-xl max-w-2xl mx-auto mb-4"
-          >
+          <p className="text-white/60 text-lg lg:text-xl max-w-2xl mx-auto mb-4">
             Your One-Stop Fashion Destination
-          </motion.p>
+          </p>
 
           {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="text-white/40 text-base lg:text-lg max-w-3xl mx-auto mb-8 leading-relaxed"
-          >
+          <p className="text-white/40 text-base lg:text-lg max-w-3xl mx-auto mb-8 leading-relaxed">
             From luxury designer pieces to streetwear essentials, thrifted gems to custom creations.
             We bring you the best of global fashion — all in one place.
-          </motion.p>
+          </p>
 
           {/* Brand Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex flex-wrap items-center justify-center gap-2 lg:gap-3 mb-10"
-          >
+          <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3 mb-10">
             {['Gucci', 'Prada', 'Balenciaga', 'Bape', 'Diesel', 'Chrome Hearts', 'Carhartt', 'Thrifted', 'Custom'].map((brand, i) => (
               <span 
                 key={brand} 
@@ -140,15 +105,10 @@ export function Hero() {
                 {brand}
               </span>
             ))}
-          </motion.div>
+          </div>
 
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
-          >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Button
               asChild
               size="lg"
@@ -168,15 +128,10 @@ export function Hero() {
                 NEW ARRIVALS
               </Link>
             </Button>
-          </motion.div>
+          </div>
 
           {/* Store Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="flex flex-wrap items-center justify-center gap-6 lg:gap-10 text-sm"
-          >
+          <div className="flex flex-wrap items-center justify-center gap-6 lg:gap-10 text-sm">
             <div className="flex items-center gap-2 text-white/50">
               <Clock className="w-4 h-4 text-amber-400" />
               <span>Mon - Sat: 12pm - 6pm</span>
@@ -189,8 +144,8 @@ export function Hero() {
               <MapPin className="w-4 h-4 text-amber-400" />
               <span>Nairobi, Kenya</span>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Gradient */}

@@ -142,13 +142,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     : null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className="group"
-    >
+    <div className="group">
       <div
         className="relative aspect-[3/4] bg-zinc-900 overflow-hidden cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
@@ -327,6 +321,6 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

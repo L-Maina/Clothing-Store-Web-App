@@ -54,11 +54,7 @@ export function NewArrivals() {
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <div>
             <p className="text-amber-400 font-medium tracking-wider text-sm uppercase mb-2">
               Fresh From The Store
             </p>
@@ -68,7 +64,7 @@ export function NewArrivals() {
             <p className="text-white/60 mt-2 max-w-md">
               The latest pieces from luxury, streetwear & thrifted collections.
             </p>
-          </motion.div>
+          </div>
           
           <Link href="/new-arrivals">
             <Button

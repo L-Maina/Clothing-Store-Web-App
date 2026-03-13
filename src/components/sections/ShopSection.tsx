@@ -125,23 +125,12 @@ export function ShopSection() {
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-amber-400 font-medium tracking-[0.2em] text-sm mb-4"
-          >
+          <p className="text-amber-400 font-medium tracking-[0.2em] text-sm mb-4">
             EXPLORE OUR COLLECTION
-          </motion.p>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4"
-          >
+          </p>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
             SHOP THE LOOK
-          </motion.h2>
+          </h2>
           <Link href="/shop">
             <Button
               className="border-amber-400 !bg-transparent text-amber-400 hover:!bg-amber-400 hover:!text-black rounded-none group transition-colors"
