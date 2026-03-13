@@ -6,20 +6,20 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-// Floating fashion items
+// Floating fashion items with actual images/icons
 const fashionItems = [
-  { id: 1, type: 'jacket', emoji: '🧥', size: 'text-6xl', delay: 0 },
-  { id: 2, type: 'sneaker', emoji: '👟', size: 'text-5xl', delay: 0.5 },
-  { id: 3, type: 'chain', emoji: '⛓️', size: 'text-4xl', delay: 1 },
-  { id: 4, type: 'cap', emoji: '🧢', size: 'text-5xl', delay: 1.5 },
-  { id: 5, type: 'ring', emoji: '💍', size: 'text-4xl', delay: 0.3 },
-  { id: 6, type: 'glasses', emoji: '🕶️', size: 'text-5xl', delay: 0.8 },
-  { id: 7, type: 'bag', emoji: '👜', size: 'text-4xl', delay: 1.2 },
-  { id: 8, type: 'watch', emoji: '⌚', size: 'text-4xl', delay: 0.6 },
-  { id: 9, type: 'belt', emoji: '〰️', size: 'text-4xl', delay: 1.8 },
-  { id: 10, type: 'shirt', emoji: '👕', size: 'text-5xl', delay: 0.2 },
-  { id: 11, type: 'pants', emoji: '👖', size: 'text-5xl', delay: 1.4 },
-  { id: 12, type: 'shoe', emoji: '👠', size: 'text-4xl', delay: 0.9 },
+  { id: 1, type: 'jacket', icon: '🧥', size: 'text-7xl', delay: 0, x: '5%', y: '20%' },
+  { id: 2, type: 'sneaker', icon: '👟', size: 'text-6xl', delay: 0.5, x: '88%', y: '15%' },
+  { id: 3, type: 'chain', icon: '⛓️', size: 'text-5xl', delay: 1, x: '3%', y: '65%' },
+  { id: 4, type: 'cap', icon: '🧢', size: 'text-6xl', delay: 1.5, x: '90%', y: '60%' },
+  { id: 5, type: 'ring', icon: '💍', size: 'text-5xl', delay: 0.3, x: '15%', y: '10%' },
+  { id: 6, type: 'glasses', icon: '🕶️', size: 'text-6xl', delay: 0.8, x: '80%', y: '75%' },
+  { id: 7, type: 'bag', icon: '👜', size: 'text-5xl', delay: 1.2, x: '8%', y: '80%' },
+  { id: 8, type: 'watch', icon: '⌚', size: 'text-5xl', delay: 0.6, x: '92%', y: '35%' },
+  { id: 9, type: 'dress', icon: '👗', size: 'text-6xl', delay: 1.8, x: '20%', y: '45%' },
+  { id: 10, type: 'shirt', icon: '👕', size: 'text-6xl', delay: 0.2, x: '75%', y: '25%' },
+  { id: 11, type: 'pants', icon: '👖', size: 'text-6xl', delay: 1.4, x: '12%', y: '35%' },
+  { id: 12, type: 'shoe', icon: '👠', size: 'text-5xl', delay: 0.9, x: '85%', y: '85%' },
 ];
 
 // Sparkle component
@@ -38,7 +38,7 @@ function Sparkle({ className }: { className?: string }) {
         ease: "easeInOut",
       }}
     >
-      <Sparkles className="w-4 h-4 text-amber-400" />
+      <Sparkles className="w-5 h-5 text-amber-400" />
     </motion.div>
   );
 }
@@ -61,44 +61,28 @@ function AnimatedLetter({ letter, index }: { letter: string; index: number }) {
   );
 }
 
-// Floating item component
-function FloatingItem({ item, index }: { item: typeof fashionItems[0]; index: number }) {
-  const positions = [
-    { left: '5%', top: '15%' },
-    { left: '85%', top: '10%' },
-    { left: '10%', top: '70%' },
-    { left: '90%', top: '65%' },
-    { left: '3%', top: '40%' },
-    { left: '92%', top: '35%' },
-    { left: '15%', top: '85%' },
-    { left: '80%', top: '80%' },
-    { left: '20%', top: '5%' },
-    { left: '75%', top: '25%' },
-    { left: '8%', top: '55%' },
-    { left: '88%', top: '50%' },
-  ];
-
-  const pos = positions[index % positions.length];
-  
+// Floating item component - more visible
+function FloatingItem({ item }: { item: typeof fashionItems[0] }) {
   return (
     <motion.div
-      className={`absolute ${pos.left} ${pos.top} ${item.size} opacity-20 select-none pointer-events-none`}
-      initial={{ opacity: 0, scale: 0 }}
+      className={`absolute ${item.x} ${item.y} ${item.size} select-none pointer-events-none z-[1]`}
+      initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
       animate={{
-        opacity: [0.15, 0.3, 0.15],
-        scale: [1, 1.2, 1],
-        y: [0, -30, 0],
-        rotate: [0, 10, -10, 0],
+        opacity: [0.4, 0.7, 0.4],
+        scale: [1, 1.15, 1],
+        y: [0, -25, 0],
+        rotate: [0, 8, -8, 0],
       }}
       transition={{
-        duration: 8 + index,
+        duration: 6 + Math.random() * 4,
         repeat: Infinity,
         delay: item.delay,
         ease: "easeInOut",
       }}
-      style={{ filter: 'blur(1px)' }}
     >
-      {item.emoji}
+      <span className="drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+        {item.icon}
+      </span>
     </motion.div>
   );
 }
@@ -146,7 +130,6 @@ export function Hero() {
   }, []);
 
   const clothingText = "CLOTHING".split('');
-  const ctrlText = "CTRL".split('');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
@@ -155,10 +138,10 @@ export function Hero() {
         className="absolute inset-0 z-0"
         animate={{
           background: [
-            'radial-gradient(ellipse at 20% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
-            'radial-gradient(ellipse at 80% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
-            'radial-gradient(ellipse at 50% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 50%)',
-            'radial-gradient(ellipse at 20% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 20% 50%, rgba(245, 158, 11, 0.2) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 80% 50%, rgba(245, 158, 11, 0.2) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 50% 80%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 20% 50%, rgba(245, 158, 11, 0.2) 0%, transparent 50%)',
           ],
         }}
         transition={{
@@ -173,7 +156,7 @@ export function Hero() {
         <motion.div 
           className="absolute inset-0 opacity-30"
           animate={{
-            opacity: [0.2, 0.3, 0.2],
+            opacity: [0.15, 0.25, 0.15],
           }}
           transition={{
             duration: 4,
@@ -182,22 +165,22 @@ export function Hero() {
           }}
           style={{
             backgroundImage: `
-              linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px)
+              linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px)
             `,
             backgroundSize: '80px 80px',
           }}
         />
       </div>
 
-      {/* Floating Fashion Items */}
-      {mounted && fashionItems.map((item, index) => (
-        <FloatingItem key={item.id} item={item} index={index} />
+      {/* Floating Fashion Items - More visible now */}
+      {mounted && fashionItems.map((item) => (
+        <FloatingItem key={item.id} item={item} />
       ))}
 
       {/* Animated Lines */}
       <motion.div
-        className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"
+        className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent"
         animate={{
           scaleX: [0, 1, 0],
           x: ['-100%', '0%', '100%'],
@@ -209,7 +192,7 @@ export function Hero() {
         }}
       />
       <motion.div
-        className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"
+        className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent"
         animate={{
           scaleX: [0, 1, 0],
           x: ['100%', '0%', '-100%'],
@@ -223,10 +206,12 @@ export function Hero() {
       />
 
       {/* Sparkles */}
-      <Sparkle className="absolute top-[20%] left-[15%]" />
-      <Sparkle className="absolute top-[30%] right-[20%]" />
-      <Sparkle className="absolute bottom-[25%] left-[25%]" />
-      <Sparkle className="absolute bottom-[35%] right-[15%]" />
+      <Sparkle className="absolute top-[15%] left-[10%]" />
+      <Sparkle className="absolute top-[25%] right-[15%]" />
+      <Sparkle className="absolute bottom-[20%] left-[20%]" />
+      <Sparkle className="absolute bottom-[30%] right-[10%]" />
+      <Sparkle className="absolute top-[45%] left-[5%]" />
+      <Sparkle className="absolute top-[55%] right-[8%]" />
 
       {/* Main Content */}
       <motion.div 
@@ -456,9 +441,9 @@ export function Hero() {
 
       {/* Animated Corner Decorations */}
       <motion.div
-        className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-amber-400/20"
+        className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-amber-400/30"
         animate={{
-          opacity: [0.2, 0.5, 0.2],
+          opacity: [0.3, 0.6, 0.3],
         }}
         transition={{
           duration: 3,
@@ -467,9 +452,9 @@ export function Hero() {
         }}
       />
       <motion.div
-        className="absolute top-0 right-0 w-32 h-32 border-r-2 border-t-2 border-amber-400/20"
+        className="absolute top-0 right-0 w-32 h-32 border-r-2 border-t-2 border-amber-400/30"
         animate={{
-          opacity: [0.2, 0.5, 0.2],
+          opacity: [0.3, 0.6, 0.3],
         }}
         transition={{
           duration: 3,
@@ -479,9 +464,9 @@ export function Hero() {
         }}
       />
       <motion.div
-        className="absolute bottom-0 left-0 w-32 h-32 border-l-2 border-b-2 border-amber-400/20"
+        className="absolute bottom-0 left-0 w-32 h-32 border-l-2 border-b-2 border-amber-400/30"
         animate={{
-          opacity: [0.2, 0.5, 0.2],
+          opacity: [0.3, 0.6, 0.3],
         }}
         transition={{
           duration: 3,
@@ -491,9 +476,9 @@ export function Hero() {
         }}
       />
       <motion.div
-        className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-amber-400/20"
+        className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-amber-400/30"
         animate={{
-          opacity: [0.2, 0.5, 0.2],
+          opacity: [0.3, 0.6, 0.3],
         }}
         transition={{
           duration: 3,

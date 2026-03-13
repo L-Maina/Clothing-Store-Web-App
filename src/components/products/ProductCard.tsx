@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Eye, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Eye, Heart, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore, useUIStore, useCurrencyStore, useWishlistStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -86,6 +86,7 @@ function isLightColor(color: string): boolean {
 
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState(0);
   const [imageError, setImageError] = useState(false);
@@ -98,8 +99,8 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const colors = typeof product.colors === 'string' ? JSON.parse(product.colors) : product.colors;
   const sizes = typeof product.sizes === 'string' ? JSON.parse(product.sizes) : product.sizes;
   
-  const mainImage = images[0] || getFallbackImage(product.name, 0);
-  const hoverImage = images[1] || mainImage;
+  const frontImage = images[0] || getFallbackImage(product.name, 0);
+  const backImage = images[1] || images[0] || getFallbackImage(product.name, 1);
   
   const isLiked = isInWishlist(product.id);
 
@@ -108,7 +109,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       productId: product.id,
       name: product.name,
       price: product.price,
-      image: mainImage,
+      image: frontImage,
       color: colors[selectedColor] || 'Default',
       size: sizes[selectedSize] || 'One Size',
       quantity: 1,
@@ -123,7 +124,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         productId: product.id,
         name: product.name,
         price: product.price,
-        image: mainImage,
+        image: frontImage,
         brand: product.brand,
       });
     }
@@ -133,47 +134,94 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     setImageError(true);
   };
 
-  const displayImage = imageError ? getFallbackImage(product.name, index) : (isHovered ? hoverImage : mainImage);
-  const displayHoverImage = imageError ? getFallbackImage(product.name, index + 1) : hoverImage;
+  const displayFrontImage = imageError ? getFallbackImage(product.name, index) : frontImage;
+  const displayBackImage = imageError ? getFallbackImage(product.name, index + 1) : backImage;
 
   // Calculate discount percentage
   const discountPercentage = product.compareAt 
     ? Math.round((1 - product.price / product.compareAt) * 100) 
     : null;
 
+  // Check if product has multiple images
+  const hasMultipleImages = images.length > 1;
+
   return (
     <div className="group">
       <div
         className="relative aspect-[3/4] bg-zinc-900 overflow-hidden cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setIsFlipped(false);
+        }}
+        onClick={() => {
+          if (hasMultipleImages) {
+            setIsFlipped(!isFlipped);
+          }
+        }}
       >
-        {/* Main Image */}
-        <motion.img
-          src={displayImage}
-          alt={product.name}
-          onError={handleImageError}
-          className="absolute inset-0 w-full h-full object-cover"
-          animate={{ opacity: isHovered ? 0 : 1 }}
-          transition={{ duration: 0.3 }}
-        />
-        
-        {/* Hover Image */}
-        <motion.img
-          src={displayHoverImage}
-          alt={`${product.name} alternate`}
-          onError={handleImageError}
-          className="absolute inset-0 w-full h-full object-cover"
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-        />
+        {/* Flip Container */}
+        <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
+          {/* Front of Card */}
+          <motion.div
+            className="absolute inset-0 w-full h-full"
+            initial={{ rotateY: 0 }}
+            animate={{ rotateY: isFlipped ? 180 : 0 }}
+            transition={{ duration: 0.6, ease: 'easeInOut' }}
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <img
+              src={displayFrontImage}
+              alt={product.name}
+              onError={handleImageError}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </motion.div>
+
+          {/* Back of Card */}
+          <motion.div
+            className="absolute inset-0 w-full h-full"
+            initial={{ rotateY: -180 }}
+            animate={{ rotateY: isFlipped ? 0 : -180 }}
+            transition={{ duration: 0.6, ease: 'easeInOut' }}
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <img
+              src={displayBackImage}
+              alt={`${product.name} back view`}
+              onError={handleImageError}
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Back indicator */}
+            <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-white/80 text-xs flex items-center gap-1">
+              <RotateCw className="w-3 h-3" />
+              BACK VIEW
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Flip indicator (shows on hover if multiple images) */}
+        <AnimatePresence>
+          {isHovered && hasMultipleImages && !isFlipped && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-white/80 text-xs flex items-center gap-1"
+            >
+              <RotateCw className="w-3 h-3" />
+              CLICK TO FLIP
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Overlay */}
-        <div 
-          className={cn(
-            "absolute inset-0 bg-black/20 transition-opacity duration-300",
-            isHovered ? "opacity-100" : "opacity-0"
-          )}
+        <motion.div 
+          className="absolute inset-0 bg-black/20 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
         />
 
         {/* Badges - Top Right */}
@@ -206,11 +254,11 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         </div>
 
         {/* Quick Actions - Top Left */}
-        <div
-          className={cn(
-            "absolute top-3 left-3 flex flex-col gap-2 transition-all duration-300",
-            isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
-          )}
+        <motion.div
+          className="absolute top-3 left-3 flex flex-col gap-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -20 }}
+          transition={{ duration: 0.3 }}
         >
           <button 
             onClick={(e) => {
@@ -235,35 +283,38 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           >
             <Eye className="w-4 h-4" />
           </button>
-        </div>
+        </motion.div>
 
         {/* Quick Add */}
-        <div
-          className={cn(
-            "absolute bottom-0 left-0 right-0 p-3 transition-all duration-300",
-            isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"
-          )}
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 p-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
+          transition={{ duration: 0.3 }}
         >
           <Button
-            onClick={handleAddToCart}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart();
+            }}
             className="w-full bg-amber-400 hover:!bg-amber-300 text-black font-bold py-3 rounded-none group/btn transition-colors"
           >
             <Plus className="w-4 h-4 mr-2 group-hover/btn:rotate-90 transition-transform duration-300" />
             ADD TO CART
           </Button>
-        </div>
+        </motion.div>
       </div>
 
       {/* Product Info */}
       <div className="mt-4 px-1">
         {/* Brand */}
         {product.brand && (
-          <p className="text-amber-400/80 text-xs font-medium tracking-wide mb-1">
+          <p className="text-amber-400/80 text-xs font-medium tracking-wide mb-1 text-center">
             {product.brand}
           </p>
         )}
 
-        {/* Name - Centered and Clear */}
+        {/* Name */}
         <h3 className="text-white font-medium text-sm text-center group-hover:text-amber-400 transition-colors line-clamp-2 min-h-[2.5rem]">
           {product.name}
         </h3>
@@ -271,11 +322,9 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         {/* Color Options - Interactive */}
         {colors && colors.length > 0 && (
           <div className="flex flex-col items-center mt-3">
-            {/* Color Name Display */}
             <p className="text-white/50 text-xs mb-2 h-4">
               {colors[selectedColor] || 'Select color'}
             </p>
-            {/* Color Dots */}
             <div className="flex justify-center gap-2">
               {colors.slice(0, 6).map((color: string, idx: number) => (
                 <button
@@ -313,7 +362,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           </div>
         )}
 
-        {/* Price - Centered */}
+        {/* Price */}
         <div className="flex items-center justify-center gap-2 mt-3">
           <span className="text-white font-bold text-base">{formatPrice(product.price)}</span>
           {product.compareAt && (
