@@ -1,0 +1,322 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, ShoppingBag, Search, User, Globe } from 'lucide-react';
+import { useCartStore, useCurrencyStore, CURRENCIES, CurrencyCode } from '@/lib/store';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+const navLinks = [
+  { href: '#shop', label: 'Shop' },
+  { href: '#new', label: 'New Arrivals' },
+  { href: '#drop', label: 'Drops' },
+  { href: '#community', label: 'Community' },
+];
+
+export function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const { openCart, getTotalItems } = useCartStore();
+  const { currency, setCurrency, setRates } = useCurrencyStore();
+  const totalItems = getTotalItems();
+
+  // Fetch exchange rates on mount
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const response = await fetch('/api/currency');
+        const data = await response.json();
+        if (data.success && data.rates) {
+          setRates(data.rates);
+        }
+      } catch (error) {
+        console.error('Failed to fetch exchange rates:', error);
+      }
+    };
+    fetchRates();
+  }, [setRates]);
+
+  // Detect user location on first visit
+  useEffect(() => {
+    const detectLocation = async () => {
+      const stored = localStorage.getItem('clothing-ctrl-currency-detected');
+      if (!stored) {
+        try {
+          const response = await fetch('https://ipapi.co/json/');
+          const data = await response.json();
+          const countryCode = data.country_code;
+          
+          // Map country to currency
+          const countryToCurrency: Record<string, CurrencyCode> = {
+            'KE': 'KES', 'US': 'USD', 'GB': 'GBP', 'EU': 'EUR',
+            'AE': 'AED', 'ZA': 'ZAR', 'UG': 'UGX', 'TZ': 'TZS',
+            'NG': 'NGN', 'CA': 'CAD', 'AU': 'AUD', 'JP': 'JPY',
+          };
+          
+          const detectedCurrency = countryToCurrency[countryCode] || 'KES';
+          setCurrency(detectedCurrency);
+          localStorage.setItem('clothing-ctrl-currency-detected', 'true');
+        } catch {
+          // Default to KES if detection fails
+          setCurrency('KES');
+        }
+      }
+    };
+    detectLocation();
+  }, [setCurrency]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isMobileMenuOpen]);
+
+  return (
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          isScrolled 
+            ? 'bg-black/90 backdrop-blur-md border-b border-white/10' 
+            : 'bg-transparent'
+        )}
+      >
+        <nav className="container mx-auto px-4 lg:px-8">
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 text-white hover:text-amber-400 transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 group">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative"
+              >
+                <span className="text-2xl lg:text-3xl font-black tracking-tighter text-white group-hover:text-amber-400 transition-colors duration-300">
+                  CLOTHING
+                </span>
+                <span className="text-2xl lg:text-3xl font-black tracking-tighter text-amber-400 ml-1">
+                  CTRL
+                </span>
+              </motion.div>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-8">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-white/80 hover:text-amber-400 font-medium text-sm tracking-wide transition-colors duration-200"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2 lg:gap-4">
+              {/* Currency Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-white/80 hover:text-amber-400 transition-colors text-sm"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span className="hidden sm:inline">{CURRENCIES[currency].symbol}</span>
+                </button>
+                
+                <AnimatePresence>
+                  {isCurrencyOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-2 w-48 bg-zinc-900 border border-white/10 rounded-lg shadow-xl overflow-hidden"
+                    >
+                      {Object.entries(CURRENCIES).map(([code, info]) => (
+                        <button
+                          key={code}
+                          onClick={() => {
+                            setCurrency(code as CurrencyCode);
+                            setIsCurrencyOpen(false);
+                          }}
+                          className={cn(
+                            "w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors",
+                            currency === code 
+                              ? "bg-amber-400/10 text-amber-400" 
+                              : "text-white/70 hover:bg-white/5 hover:text-white"
+                          )}
+                        >
+                          <span>{info.flag}</span>
+                          <span>{info.symbol}</span>
+                          <span className="text-white/50">{code}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <button className="p-2 text-white/80 hover:text-amber-400 transition-colors">
+                <Search className="w-5 h-5" />
+              </button>
+              <button className="hidden lg:flex p-2 text-white/80 hover:text-amber-400 transition-colors">
+                <User className="w-5 h-5" />
+              </button>
+              <button
+                onClick={openCart}
+                className="relative p-2 text-white/80 hover:text-amber-400 transition-colors"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center justify-center"
+                  >
+                    {totalItems}
+                  </motion.span>
+                )}
+              </button>
+            </div>
+          </div>
+        </nav>
+      </motion.header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] lg:hidden"
+          >
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+
+            {/* Menu Panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.3 }}
+              className="absolute top-0 left-0 w-[85%] max-w-sm h-full bg-zinc-950 border-r border-white/10"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <span className="text-xl font-bold text-white">
+                  CLOTHING<span className="text-amber-400">CTRL</span>
+                </span>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 text-white hover:text-amber-400 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <nav className="p-6">
+                <ul className="space-y-6">
+                  {navLinks.map((link, index) => (
+                    <motion.li
+                      key={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-2xl font-bold text-white hover:text-amber-400 transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </motion.li>
+                  ))}
+                </ul>
+
+                {/* Mobile Currency Selector */}
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  <p className="text-white/50 text-xs uppercase tracking-wider mb-3">Currency</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(CURRENCIES).slice(0, 6).map(([code, info]) => (
+                      <button
+                        key={code}
+                        onClick={() => setCurrency(code as CurrencyCode)}
+                        className={cn(
+                          "px-3 py-1.5 text-sm rounded-full border transition-colors",
+                          currency === code 
+                            ? "bg-amber-400 text-black border-amber-400" 
+                            : "border-white/20 text-white/70 hover:border-amber-400/50"
+                        )}
+                      >
+                        {info.flag} {code}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </nav>
+
+              <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
+                <p className="text-white/60 text-sm mb-4">Follow us</p>
+                <div className="flex gap-4">
+                  <a 
+                    href="https://www.instagram.com/clothing.ctrl" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-white/60 hover:text-amber-400 transition-colors text-sm"
+                  >
+                    Instagram
+                  </a>
+                  <a 
+                    href="https://www.tiktok.com/@clothing.ctrl" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-white/60 hover:text-amber-400 transition-colors text-sm"
+                  >
+                    TikTok
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Click outside to close currency dropdown */}
+      {isCurrencyOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setIsCurrencyOpen(false)}
+        />
+      )}
+    </>
+  );
+}
