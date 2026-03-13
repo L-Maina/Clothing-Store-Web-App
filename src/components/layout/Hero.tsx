@@ -1,155 +1,525 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Clock, Truck } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, MapPin, Clock, Truck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
+// Floating fashion items
+const fashionItems = [
+  { id: 1, type: 'jacket', emoji: '🧥', size: 'text-6xl', delay: 0 },
+  { id: 2, type: 'sneaker', emoji: '👟', size: 'text-5xl', delay: 0.5 },
+  { id: 3, type: 'chain', emoji: '⛓️', size: 'text-4xl', delay: 1 },
+  { id: 4, type: 'cap', emoji: '🧢', size: 'text-5xl', delay: 1.5 },
+  { id: 5, type: 'ring', emoji: '💍', size: 'text-4xl', delay: 0.3 },
+  { id: 6, type: 'glasses', emoji: '🕶️', size: 'text-5xl', delay: 0.8 },
+  { id: 7, type: 'bag', emoji: '👜', size: 'text-4xl', delay: 1.2 },
+  { id: 8, type: 'watch', emoji: '⌚', size: 'text-4xl', delay: 0.6 },
+  { id: 9, type: 'belt', emoji: '〰️', size: 'text-4xl', delay: 1.8 },
+  { id: 10, type: 'shirt', emoji: '👕', size: 'text-5xl', delay: 0.2 },
+  { id: 11, type: 'pants', emoji: '👖', size: 'text-5xl', delay: 1.4 },
+  { id: 12, type: 'shoe', emoji: '👠', size: 'text-4xl', delay: 0.9 },
+];
+
+// Sparkle component
+function Sparkle({ className }: { className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      animate={{
+        scale: [0, 1, 0],
+        opacity: [0, 1, 0],
+        rotate: [0, 180, 360],
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    >
+      <Sparkles className="w-4 h-4 text-amber-400" />
+    </motion.div>
+  );
+}
+
+// Animated letter component
+function AnimatedLetter({ letter, index }: { letter: string; index: number }) {
+  return (
+    <motion.span
+      className="inline-block"
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{
+        duration: 0.5,
+        delay: index * 0.05,
+        ease: [0.215, 0.61, 0.355, 1],
+      }}
+    >
+      {letter}
+    </motion.span>
+  );
+}
+
+// Floating item component
+function FloatingItem({ item, index }: { item: typeof fashionItems[0]; index: number }) {
+  const positions = [
+    { left: '5%', top: '15%' },
+    { left: '85%', top: '10%' },
+    { left: '10%', top: '70%' },
+    { left: '90%', top: '65%' },
+    { left: '3%', top: '40%' },
+    { left: '92%', top: '35%' },
+    { left: '15%', top: '85%' },
+    { left: '80%', top: '80%' },
+    { left: '20%', top: '5%' },
+    { left: '75%', top: '25%' },
+    { left: '8%', top: '55%' },
+    { left: '88%', top: '50%' },
+  ];
+
+  const pos = positions[index % positions.length];
+  
+  return (
+    <motion.div
+      className={`absolute ${pos.left} ${pos.top} ${item.size} opacity-20 select-none pointer-events-none`}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{
+        opacity: [0.15, 0.3, 0.15],
+        scale: [1, 1.2, 1],
+        y: [0, -30, 0],
+        rotate: [0, 10, -10, 0],
+      }}
+      transition={{
+        duration: 8 + index,
+        repeat: Infinity,
+        delay: item.delay,
+        ease: "easeInOut",
+      }}
+      style={{ filter: 'blur(1px)' }}
+    >
+      {item.emoji}
+    </motion.div>
+  );
+}
+
+// Animated border box
+function AnimatedBorder({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`relative ${className}`}>
+      <motion.div
+        className="absolute inset-0 rounded-lg"
+        style={{
+          background: 'linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b)',
+          backgroundSize: '200% 100%',
+        }}
+        animate={{
+          backgroundPosition: ['0% 0%', '200% 0%'],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      />
+      <div className="relative m-[2px] bg-black rounded-md">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export function Hero() {
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 500], [0, 150]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  
+  // Track client-side mount state
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    // Use requestAnimationFrame to defer state update
+    const raf = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const clothingText = "CLOTHING".split('');
+  const ctrlText = "CTRL".split('');
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Animated Background Pattern */}
-      <div className="absolute inset-0 z-0">
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-black to-zinc-900" />
-        
-        {/* Animated Grid */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `
-              linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px',
-          }} />
-        </div>
+      {/* Animated Gradient Background */}
+      <motion.div 
+        className="absolute inset-0 z-0"
+        animate={{
+          background: [
+            'radial-gradient(ellipse at 20% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 80% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 50% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 20% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 50%)',
+          ],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
 
-        {/* Floating Elements */}
-        <motion.div
+      {/* Animated Grid Pattern */}
+      <div className="absolute inset-0 z-0">
+        <motion.div 
+          className="absolute inset-0 opacity-30"
           animate={{
-            y: [0, -20, 0],
-            rotate: [0, 5, 0],
+            opacity: [0.2, 0.3, 0.2],
           }}
           transition={{
-            duration: 6,
+            duration: 4,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
-          className="absolute top-20 left-10 w-32 h-32 rounded-full bg-gradient-to-br from-amber-500/10 to-transparent blur-2xl"
-        />
-        <motion.div
-          animate={{
-            y: [0, 20, 0],
-            rotate: [0, -5, 0],
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '80px 80px',
           }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-400/10 to-transparent blur-3xl"
         />
       </div>
 
+      {/* Floating Fashion Items */}
+      {mounted && fashionItems.map((item, index) => (
+        <FloatingItem key={item.id} item={item} index={index} />
+      ))}
+
+      {/* Animated Lines */}
+      <motion.div
+        className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"
+        animate={{
+          scaleX: [0, 1, 0],
+          x: ['-100%', '0%', '100%'],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      <motion.div
+        className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"
+        animate={{
+          scaleX: [0, 1, 0],
+          x: ['100%', '0%', '-100%'],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 2,
+        }}
+      />
+
+      {/* Sparkles */}
+      <Sparkle className="absolute top-[20%] left-[15%]" />
+      <Sparkle className="absolute top-[30%] right-[20%]" />
+      <Sparkle className="absolute bottom-[25%] left-[25%]" />
+      <Sparkle className="absolute bottom-[35%] right-[15%]" />
+
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 lg:px-8 text-center">
+      <motion.div 
+        className="relative z-10 container mx-auto px-4 lg:px-8 text-center"
+        style={{ y, opacity }}
+      >
         <div className="max-w-5xl mx-auto">
           {/* Store Location Badge */}
-          <div className="flex items-center justify-center gap-2 text-white/50 text-sm mb-8">
-            <MapPin className="w-4 h-4" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center justify-center gap-2 text-white/50 text-sm mb-8"
+          >
+            <MapPin className="w-4 h-4 text-amber-400" />
             <span>Nairobi CBD • Cargen House, Harambee Ave • Rm 310</span>
-          </div>
+          </motion.div>
 
-          {/* Custom Nameplate Logo */}
+          {/* Main Logo */}
           <div className="relative mb-8">
             <div className="inline-block">
-              {/* Main Logo Text */}
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-tight">
-                <span className="block text-white relative">
-                  CLOTHING
-                  {/* Decorative underline */}
-                  <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+              {/* CLOTHING Text with Animation */}
+              <motion.h1 
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-tight"
+              >
+                <span className="block text-white relative overflow-hidden">
+                  {mounted && clothingText.map((letter, i) => (
+                    <AnimatedLetter key={i} letter={letter} index={i} />
+                  ))}
+                  {/* Animated underline */}
+                  <motion.div 
+                    className="absolute -bottom-2 left-0 right-0 h-1 overflow-hidden"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                  >
+                    <div className="w-full h-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+                  </motion.div>
                 </span>
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 mt-2">
-                  CTRL
-                </span>
-              </h1>
-              
+                
+                {/* CTRL Text with Gradient */}
+                <motion.span 
+                  className="block text-transparent bg-clip-text mt-2 relative"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  style={{
+                    backgroundImage: 'linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b)',
+                    backgroundSize: '200% 100%',
+                  }}
+                >
+                  <motion.span
+                    animate={{
+                      backgroundPosition: ['0% 0%', '200% 0%'],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                    className="inline-block"
+                    style={{
+                      backgroundImage: 'linear-gradient(90deg, #f59e0b, #fbbf24, #fcd34d, #fbbf24, #f59e0b)',
+                      backgroundSize: '200% 100%',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    CTRL
+                  </motion.span>
+                  
+                  {/* Glowing effect */}
+                  <motion.span
+                    className="absolute inset-0 blur-2xl opacity-50 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 bg-clip-text text-transparent"
+                    animate={{
+                      opacity: [0.3, 0.6, 0.3],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    CTRL
+                  </motion.span>
+                </motion.span>
+              </motion.h1>
+
               {/* Decorative elements */}
-              <div className="flex items-center justify-center gap-4 mt-6">
-                <div className="h-px w-16 bg-gradient-to-r from-transparent to-white/30" />
-                <span className="text-amber-400 text-xs tracking-[0.4em] font-medium">EST. 2020</span>
-                <div className="h-px w-16 bg-gradient-to-l from-transparent to-white/30" />
-              </div>
+              <motion.div 
+                className="flex items-center justify-center gap-4 mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+              >
+                <motion.div 
+                  className="h-px w-16 bg-gradient-to-r from-transparent to-white/30"
+                  animate={{ scaleX: [0, 1] }}
+                  transition={{ duration: 0.6, delay: 1 }}
+                />
+                <AnimatedBorder>
+                  <span className="px-4 py-1 text-amber-400 text-xs tracking-[0.4em] font-medium block">
+                    EST. 2020 • NAIROBI
+                  </span>
+                </AnimatedBorder>
+                <motion.div 
+                  className="h-px w-16 bg-gradient-to-l from-transparent to-white/30"
+                  animate={{ scaleX: [0, 1] }}
+                  transition={{ duration: 0.6, delay: 1 }}
+                />
+              </motion.div>
             </div>
           </div>
 
           {/* Tagline */}
-          <p className="text-white/60 text-lg lg:text-xl max-w-2xl mx-auto mb-4">
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="text-white/60 text-lg lg:text-xl max-w-2xl mx-auto mb-4"
+          >
             Your One-Stop Fashion Destination
-          </p>
+          </motion.p>
 
           {/* Description */}
-          <p className="text-white/40 text-base lg:text-lg max-w-3xl mx-auto mb-8 leading-relaxed">
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="text-white/40 text-base lg:text-lg max-w-3xl mx-auto mb-8 leading-relaxed"
+          >
             From luxury designer pieces to streetwear essentials, thrifted gems to custom creations.
             We bring you the best of global fashion — all in one place.
-          </p>
+          </motion.p>
 
-          {/* Brand Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3 mb-10">
+          {/* Animated Brand Pills */}
+          <motion.div 
+            className="flex flex-wrap items-center justify-center gap-2 lg:gap-3 mb-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
             {['Gucci', 'Prada', 'Balenciaga', 'Bape', 'Diesel', 'Chrome Hearts', 'Carhartt', 'Thrifted', 'Custom'].map((brand, i) => (
-              <span 
+              <motion.span 
                 key={brand} 
-                className="px-3 py-1.5 border border-white/10 rounded-full text-white/50 text-xs lg:text-sm hover:border-amber-400/50 hover:text-amber-400 transition-all cursor-default"
+                className="px-3 py-1.5 border border-white/10 rounded-full text-white/50 text-xs lg:text-sm hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all cursor-default"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.9 + i * 0.05 }}
+                whileHover={{ scale: 1.05 }}
               >
                 {brand}
-              </span>
+              </motion.span>
             ))}
-          </div>
+          </motion.div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1 }}
+          >
             <Button
               asChild
               size="lg"
-              className="bg-white text-black hover:!bg-white/90 font-bold px-8 py-6 text-lg rounded-none group transition-colors"
+              className="bg-white text-black hover:!bg-white/90 font-bold px-8 py-6 text-lg rounded-none group transition-all hover:scale-105 hover:shadow-lg hover:shadow-white/20"
             >
               <Link href="#shop">
                 SHOP NOW
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </motion.span>
               </Link>
             </Button>
             <Button
               asChild
               size="lg"
-              className="border-2 border-amber-400 !bg-transparent text-amber-400 hover:!bg-amber-400 hover:!text-black font-bold px-8 py-6 text-lg rounded-none transition-colors"
+              className="border-2 border-amber-400 !bg-transparent text-amber-400 hover:!bg-amber-400 hover:!text-black font-bold px-8 py-6 text-lg rounded-none transition-all hover:scale-105 hover:shadow-lg hover:shadow-amber-400/20"
             >
               <Link href="/new-arrivals">
                 NEW ARRIVALS
               </Link>
             </Button>
-          </div>
+          </motion.div>
 
           {/* Store Info */}
-          <div className="flex flex-wrap items-center justify-center gap-6 lg:gap-10 text-sm">
+          <motion.div 
+            className="flex flex-wrap items-center justify-center gap-6 lg:gap-10 text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+          >
             <div className="flex items-center gap-2 text-white/50">
-              <Clock className="w-4 h-4 text-amber-400" />
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+              >
+                <Clock className="w-4 h-4 text-amber-400" />
+              </motion.div>
               <span>Mon - Sat: 12pm - 6pm</span>
             </div>
             <div className="flex items-center gap-2 text-white/50">
-              <Truck className="w-4 h-4 text-amber-400" />
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Truck className="w-4 h-4 text-amber-400" />
+              </motion.div>
               <span>Worldwide Shipping</span>
             </div>
             <div className="flex items-center gap-2 text-white/50">
-              <MapPin className="w-4 h-4 text-amber-400" />
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <MapPin className="w-4 h-4 text-amber-400" />
+              </motion.div>
               <span>Nairobi, Kenya</span>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Animated Corner Decorations */}
+      <motion.div
+        className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-amber-400/20"
+        animate={{
+          opacity: [0.2, 0.5, 0.2],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      <motion.div
+        className="absolute top-0 right-0 w-32 h-32 border-r-2 border-t-2 border-amber-400/20"
+        animate={{
+          opacity: [0.2, 0.5, 0.2],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 0.5,
+        }}
+      />
+      <motion.div
+        className="absolute bottom-0 left-0 w-32 h-32 border-l-2 border-b-2 border-amber-400/20"
+        animate={{
+          opacity: [0.2, 0.5, 0.2],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
+      />
+      <motion.div
+        className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-amber-400/20"
+        animate={{
+          opacity: [0.2, 0.5, 0.2],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1.5,
+        }}
+      />
 
       {/* Bottom Gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10" />
+
+      {/* Scroll Indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center">
+          <motion.div
+            className="w-1.5 h-3 bg-amber-400 rounded-full mt-2"
+            animate={{ opacity: [1, 0], y: [0, 10] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        </div>
+      </motion.div>
     </section>
   );
 }
