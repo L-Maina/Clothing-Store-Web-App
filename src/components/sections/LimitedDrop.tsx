@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Bell, Clock } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 interface DropData {
@@ -144,15 +145,17 @@ export function LimitedDrop() {
 
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button className="bg-white hover:bg-white/90 text-black font-bold py-4 px-8 rounded-none group">
-                GET NOTIFIED
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <Link href="/drops">
+                <Button className="bg-white hover:bg-white/90 text-black font-bold py-4 px-8 rounded-none group">
+                  VIEW ALL DROPS
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
               <Button
                 variant="outline"
                 className="border-white/30 text-white hover:bg-white/10 py-4 px-8 rounded-none"
               >
-                VIEW PREVIEW
+                GET NOTIFIED
               </Button>
             </div>
           </motion.div>

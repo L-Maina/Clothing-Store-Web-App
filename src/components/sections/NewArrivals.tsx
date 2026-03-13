@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Button } from '@/components/ui/button';
 
@@ -69,13 +70,15 @@ export function NewArrivals() {
             </p>
           </motion.div>
           
-          <Button
-            variant="outline"
-            className="border-white/30 text-white hover:bg-white hover:text-black rounded-none self-start md:self-auto group"
-          >
-            VIEW ALL NEW
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <Link href="/new-arrivals">
+            <Button
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white hover:text-black rounded-none self-start md:self-auto group"
+            >
+              VIEW ALL NEW
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
 
         {/* Products */}

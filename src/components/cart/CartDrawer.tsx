@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingBag, Trash2, Truck } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useCartStore, useCurrencyStore } from '@/lib/store';
 
@@ -160,9 +161,11 @@ export function CartDrawer() {
                 </div>
 
                 {/* Checkout Button */}
-                <Button className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 rounded-none">
-                  PROCEED TO CHECKOUT
-                </Button>
+                <Link href="/checkout" onClick={closeCart}>
+                  <Button className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 rounded-none">
+                    PROCEED TO CHECKOUT
+                  </Button>
+                </Link>
 
                 <Button
                   onClick={closeCart}

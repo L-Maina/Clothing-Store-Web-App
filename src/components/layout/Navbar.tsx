@@ -7,18 +7,20 @@ import { Menu, X, ShoppingBag, Search, User, Globe } from 'lucide-react';
 import { useCartStore, useCurrencyStore, CURRENCIES, CurrencyCode } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SearchModal } from '@/components/search/SearchModal';
 
 const navLinks = [
-  { href: '#shop', label: 'Shop' },
-  { href: '#new', label: 'New Arrivals' },
-  { href: '#drop', label: 'Drops' },
-  { href: '#community', label: 'Community' },
+  { href: '/shop', label: 'Shop' },
+  { href: '/new-arrivals', label: 'New Arrivals' },
+  { href: '/drops', label: 'Drops' },
+  { href: '/community', label: 'Community' },
 ];
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { openCart, getTotalItems } = useCartStore();
   const { currency, setCurrency, setRates } = useCurrencyStore();
   const totalItems = getTotalItems();
@@ -157,31 +159,36 @@ export function Navbar() {
                       exit={{ opacity: 0, y: 10 }}
                       className="absolute top-full right-0 mt-2 w-48 bg-zinc-900 border border-white/10 rounded-lg shadow-xl overflow-hidden"
                     >
-                      {Object.entries(CURRENCIES).map(([code, info]) => (
-                        <button
-                          key={code}
-                          onClick={() => {
-                            setCurrency(code as CurrencyCode);
-                            setIsCurrencyOpen(false);
-                          }}
-                          className={cn(
-                            "w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors",
-                            currency === code 
-                              ? "bg-amber-400/10 text-amber-400" 
-                              : "text-white/70 hover:bg-white/5 hover:text-white"
-                          )}
-                        >
-                          <span>{info.flag}</span>
-                          <span>{info.symbol}</span>
-                          <span className="text-white/50">{code}</span>
-                        </button>
-                      ))}
+                      <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                        {Object.entries(CURRENCIES).map(([code, info]) => (
+                          <button
+                            key={code}
+                            onClick={() => {
+                              setCurrency(code as CurrencyCode);
+                              setIsCurrencyOpen(false);
+                            }}
+                            className={cn(
+                              "w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors",
+                              currency === code 
+                                ? "bg-amber-400/10 text-amber-400" 
+                                : "text-white/70 hover:bg-white/5 hover:text-white"
+                            )}
+                          >
+                            <span>{info.flag}</span>
+                            <span>{info.symbol}</span>
+                            <span className="text-white/50">{code}</span>
+                          </button>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              <button className="p-2 text-white/80 hover:text-amber-400 transition-colors">
+              <button 
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2 text-white/80 hover:text-amber-400 transition-colors"
+              >
                 <Search className="w-5 h-5" />
               </button>
               <button className="hidden lg:flex p-2 text-white/80 hover:text-amber-400 transition-colors">
@@ -317,6 +324,9 @@ export function Navbar() {
           onClick={() => setIsCurrencyOpen(false)}
         />
       )}
+
+      {/* Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }

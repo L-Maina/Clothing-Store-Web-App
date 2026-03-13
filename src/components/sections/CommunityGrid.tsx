@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Instagram, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 interface CommunityPhoto {
@@ -45,14 +46,30 @@ export function CommunityGrid() {
           <p className="text-white/60 max-w-md mx-auto mb-6">
             Tag us in your fits for a chance to be featured. Show us how you style your favorite pieces.
           </p>
-          <Button
-            variant="outline"
-            className="border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-black rounded-none group"
-          >
-            <Instagram className="w-4 h-4 mr-2" />
-            FOLLOW US
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/community">
+              <Button
+                variant="outline"
+                className="border-amber-400/50 text-amber-400 hover:bg-amber-400 hover:text-black rounded-none group"
+              >
+                VIEW ALL
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <a
+              href="https://www.instagram.com/clothing.ctrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 rounded-none group"
+              >
+                <Instagram className="w-4 h-4 mr-2" />
+                FOLLOW US
+              </Button>
+            </a>
+          </div>
         </motion.div>
 
         {/* Grid */}
