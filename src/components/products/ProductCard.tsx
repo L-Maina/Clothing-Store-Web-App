@@ -23,6 +23,7 @@ interface Product {
   condition?: string;
   category?: {
     name: string;
+    type?: string;
   };
 }
 

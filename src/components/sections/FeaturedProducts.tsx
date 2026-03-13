@@ -19,8 +19,11 @@ interface Product {
   isNew?: boolean;
   isLimited?: boolean;
   limitedQty?: number | null;
-  category: {
+  brand?: string | null;
+  condition?: string;
+  category?: {
     name: string;
+    type?: string;
   };
 }
 

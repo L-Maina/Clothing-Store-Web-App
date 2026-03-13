@@ -142,9 +142,9 @@ export function QuickView() {
 
                 {/* Price */}
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="text-2xl font-bold text-white">${product.price as number}</span>
-                  {product.compareAt && (
-                    <span className="text-lg text-white/40 line-through">${product.compareAt as number}</span>
+                  <span className="text-2xl font-bold text-white">KSh {String(product.price)}</span>
+                  {product.compareAt !== null && product.compareAt !== undefined && (
+                    <span className="text-lg text-white/40 line-through">KSh {String(product.compareAt)}</span>
                   )}
                 </div>
 
@@ -153,7 +153,6 @@ export function QuickView() {
                   {product.description as string}
                 </p>
 
-                {/* Color */}
                 <div className="mb-4">
                   <label className="block text-white text-sm font-medium mb-2">
                     Color: <span className="text-amber-400">{colors[selectedColor]}</span>
@@ -238,7 +237,7 @@ export function QuickView() {
                   onClick={handleAddToCart}
                   className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-4 text-lg rounded-none"
                 >
-                  ADD TO CART — ${((product.price as number) * quantity).toFixed(2)}
+                  ADD TO CART — KSh {((product.price as number) * quantity).toLocaleString()}
                 </Button>
 
                 {/* Limited Badge */}

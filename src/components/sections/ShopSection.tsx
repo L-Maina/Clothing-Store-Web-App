@@ -64,7 +64,8 @@ export function ShopSection() {
       try {
         const response = await fetch('/api/products');
         const data = await response.json();
-        setProducts(data.products || []);
+        // API returns array directly
+        setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Failed to fetch products:', error);
       } finally {
