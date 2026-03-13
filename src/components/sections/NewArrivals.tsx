@@ -72,8 +72,7 @@ export function NewArrivals() {
           
           <Link href="/new-arrivals">
             <Button
-              variant="outline"
-              className="border-white/30 text-white hover:bg-white hover:text-black rounded-none self-start md:self-auto group"
+              className="border border-white/30 !bg-transparent text-white hover:!bg-white hover:!text-black rounded-none self-start md:self-auto group transition-colors"
             >
               VIEW ALL NEW
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
