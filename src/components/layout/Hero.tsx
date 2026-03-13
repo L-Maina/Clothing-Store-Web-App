@@ -10,13 +10,14 @@ import { useEffect, useState, useMemo } from 'react';
 const fashionIcons = ['🧥', '👟', '⛓️', '🧢', '💍', '🕶️', '👜', '⌚', '👗', '👕', '👖', '👠', '🧣', '手套', '🎽', '🩳', '👛', '🎀'];
 
 // Generate random floating fashion items spread across the entire page
+// Y starts from 15% to avoid the fixed navbar at the top
 function generateFloatingItems(count: number) {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     icon: fashionIcons[i % fashionIcons.length],
     size: Math.random() > 0.6 ? 'text-3xl' : Math.random() > 0.3 ? 'text-4xl' : 'text-2xl',
     x: Math.random() * 100, // Random x position (0-100%)
-    y: Math.random() * 100, // Random y position (0-100%)
+    y: 15 + Math.random() * 75, // Random y position (15-90%) - avoids navbar
     delay: Math.random() * 5,
     duration: 8 + Math.random() * 8,
     opacity: 0.15 + Math.random() * 0.35,
@@ -146,7 +147,7 @@ export function Hero() {
   const clothingText = "CLOTHING".split('');
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-16 lg:pt-20">
       {/* Animated Gradient Background */}
       <motion.div 
         className="absolute inset-0 z-0"
