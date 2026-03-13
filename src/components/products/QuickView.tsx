@@ -122,12 +122,13 @@ export function QuickView() {
             className="relative w-full max-w-4xl max-h-[90vh] overflow-auto bg-zinc-950 border border-white/10"
             onClick={e => e.stopPropagation()}
           >
-            {/* Close Button */}
+            {/* Close Button - More Visible */}
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+              className="absolute top-4 left-4 z-10 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-sm rounded-full flex items-center gap-2 transition-colors shadow-lg"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
             </button>
 
             <div className="grid md:grid-cols-2">

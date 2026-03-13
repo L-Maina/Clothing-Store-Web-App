@@ -151,16 +151,24 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products, brands, categories..."
                 autoFocus
-                className="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder:text-white/40 focus:outline-none focus:border-amber-400/50 text-lg"
+                className="w-full bg-zinc-900 border border-white/10 rounded-xl py-4 pl-12 pr-24 text-white placeholder:text-white/40 focus:outline-none focus:border-amber-400/50 text-lg"
               />
-              {query && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {query && (
+                  <button
+                    onClick={() => setQuery('')}
+                    className="text-white/50 hover:text-white p-1"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
                 <button
-                  onClick={() => setQuery('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  onClick={onClose}
+                  className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-sm rounded-full transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  Done
                 </button>
-              )}
+              </div>
             </div>
 
             {/* Results */}
@@ -252,9 +260,14 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               )}
             </div>
 
-            {/* Close hint */}
-            <p className="text-center text-white/30 text-sm mt-6">
+            {/* Close hint - Desktop only */}
+            <p className="hidden md:block text-center text-white/30 text-sm mt-6">
               Press <kbd className="px-2 py-1 bg-zinc-800 rounded text-xs">ESC</kbd> to close
+            </p>
+            
+            {/* Mobile close hint */}
+            <p className="md:hidden text-center text-white/30 text-sm mt-6">
+              Tap outside or click Done to close
             </p>
           </motion.div>
         </motion.div>
