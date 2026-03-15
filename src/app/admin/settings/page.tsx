@@ -18,6 +18,10 @@ import {
   Save,
   Loader2,
   CheckCircle,
+  Truck,
+  Award,
+  Medal,
+  Crown,
 } from 'lucide-react';
 import { broadcastSettingsUpdate } from '@/hooks/useRealtime';
 
@@ -39,6 +43,15 @@ interface StoreSettings {
   bannerLink: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
+  shippingNairobi: number;
+  shippingKenya: number;
+  shippingInternational: number;
+  shippingFreeThreshold: number | null;
+  loyaltyPointsPerShilling: number;
+  loyaltyBronzeThreshold: number;
+  loyaltySilverThreshold: number;
+  loyaltyGoldThreshold: number;
+  loyaltyPlatinumThreshold: number;
 }
 
 const defaultSettings: StoreSettings = {
@@ -59,6 +72,15 @@ const defaultSettings: StoreSettings = {
   bannerLink: '',
   metaTitle: 'Clothing Ctrl | Nairobi Fashion Store',
   metaDescription: 'Your one-stop fashion destination in Nairobi, Kenya.',
+  shippingNairobi: 200,
+  shippingKenya: 500,
+  shippingInternational: 2000,
+  shippingFreeThreshold: 5000,
+  loyaltyPointsPerShilling: 0.01,
+  loyaltyBronzeThreshold: 0,
+  loyaltySilverThreshold: 200,
+  loyaltyGoldThreshold: 500,
+  loyaltyPlatinumThreshold: 1000,
 };
 
 export default function AdminSettings() {
@@ -406,6 +428,180 @@ export default function AdminSettings() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Shipping Settings */}
+        <Card className="bg-zinc-900 border-white/10">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-cyan-400/10 rounded-lg flex items-center justify-center">
+                <Truck className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Shipping Zones</CardTitle>
+                <CardDescription className="text-white/40">
+                  Set shipping costs for different delivery areas
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-4">
+              <div className="p-4 bg-zinc-800/50 rounded-lg border border-white/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-green-400" />
+                  <Label className="text-white font-medium">Within Nairobi</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/40 text-sm">KES</span>
+                  <Input
+                    type="number"
+                    value={settings.shippingNairobi}
+                    onChange={(e) => updateSetting('shippingNairobi', parseFloat(e.target.value) || 0)}
+                    placeholder="200"
+                    className="bg-zinc-700 border-white/10 text-white focus:border-amber-400 w-32"
+                  />
+                </div>
+                <p className="text-white/30 text-xs mt-2">Deliveries within Nairobi County</p>
+              </div>
+
+              <div className="p-4 bg-zinc-800/50 rounded-lg border border-white/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-yellow-400" />
+                  <Label className="text-white font-medium">Other Areas in Kenya</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/40 text-sm">KES</span>
+                  <Input
+                    type="number"
+                    value={settings.shippingKenya}
+                    onChange={(e) => updateSetting('shippingKenya', parseFloat(e.target.value) || 0)}
+                    placeholder="500"
+                    className="bg-zinc-700 border-white/10 text-white focus:border-amber-400 w-32"
+                  />
+                </div>
+                <p className="text-white/30 text-xs mt-2">Mombasa, Kisumu, Nakuru, and other Kenyan towns</p>
+              </div>
+
+              <div className="p-4 bg-zinc-800/50 rounded-lg border border-white/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-blue-400" />
+                  <Label className="text-white font-medium">International</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/40 text-sm">KES</span>
+                  <Input
+                    type="number"
+                    value={settings.shippingInternational}
+                    onChange={(e) => updateSetting('shippingInternational', parseFloat(e.target.value) || 0)}
+                    placeholder="2000"
+                    className="bg-zinc-700 border-white/10 text-white focus:border-amber-400 w-32"
+                  />
+                </div>
+                <p className="text-white/30 text-xs mt-2">Deliveries outside Kenya (Uganda, Tanzania, etc.)</p>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 pt-4 mt-4">
+              <Label className="text-white/60">Free Shipping Threshold (KES)</Label>
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="text-white/40 text-sm">KES</span>
+                <Input
+                  type="number"
+                  value={settings.shippingFreeThreshold || ''}
+                  onChange={(e) => updateSetting('shippingFreeThreshold', parseFloat(e.target.value) || null)}
+                  placeholder="5000"
+                  className="bg-zinc-800 border-white/10 text-white focus:border-amber-400 flex-1"
+                />
+              </div>
+              <p className="text-white/40 text-xs mt-1">Orders above this amount get free shipping. Leave empty to disable.</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Loyalty Points Settings */}
+        <Card className="bg-zinc-900 border-white/10">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-400/10 rounded-lg flex items-center justify-center">
+                <Award className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Loyalty Points</CardTitle>
+                <CardDescription className="text-white/40">
+                  Configure how customers earn and tier up
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-white/60">Points per KES 100 spent</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={settings.loyaltyPointsPerShilling * 100}
+                onChange={(e) => updateSetting('loyaltyPointsPerShilling', (parseFloat(e.target.value) || 1) / 100)}
+                placeholder="1"
+                className="mt-1.5 bg-zinc-800 border-white/10 text-white focus:border-amber-400"
+              />
+              <p className="text-white/40 text-xs mt-1">E.g., 1 point per KES 100 = 0.01 points per shilling</p>
+            </div>
+
+            <div className="border-t border-white/10 pt-4 mt-4">
+              <Label className="text-white/60 mb-3 block">Tier Thresholds (Points Required)</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Medal className="w-4 h-4 text-amber-700" />
+                    <span className="text-white/60 text-sm">Bronze</span>
+                  </div>
+                  <Input
+                    type="number"
+                    value={settings.loyaltyBronzeThreshold}
+                    onChange={(e) => updateSetting('loyaltyBronzeThreshold', parseInt(e.target.value) || 0)}
+                    className="bg-zinc-800 border-white/10 text-white"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Award className="w-4 h-4 text-gray-400" />
+                    <span className="text-white/60 text-sm">Silver</span>
+                  </div>
+                  <Input
+                    type="number"
+                    value={settings.loyaltySilverThreshold}
+                    onChange={(e) => updateSetting('loyaltySilverThreshold', parseInt(e.target.value) || 0)}
+                    className="bg-zinc-800 border-white/10 text-white"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Crown className="w-4 h-4 text-yellow-500" />
+                    <span className="text-white/60 text-sm">Gold</span>
+                  </div>
+                  <Input
+                    type="number"
+                    value={settings.loyaltyGoldThreshold}
+                    onChange={(e) => updateSetting('loyaltyGoldThreshold', parseInt(e.target.value) || 0)}
+                    className="bg-zinc-800 border-white/10 text-white"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Award className="w-4 h-4 text-purple-400" />
+                    <span className="text-white/60 text-sm">Platinum</span>
+                  </div>
+                  <Input
+                    type="number"
+                    value={settings.loyaltyPlatinumThreshold}
+                    onChange={(e) => updateSetting('loyaltyPlatinumThreshold', parseInt(e.target.value) || 0)}
+                    className="bg-zinc-800 border-white/10 text-white"
+                  />
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

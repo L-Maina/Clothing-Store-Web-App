@@ -177,10 +177,10 @@ model OrderItem {
 
 // Newsletter subscribers
 model Subscriber {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  discountUsed Boolean @default(false)
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  discountUsed Boolean  @default(false)
+  createdAt    DateTime @default(now())
 }
 
 // Next drop info
@@ -253,27 +253,40 @@ model StoreSettings {
   storeDescription String?
   storeEmail      String?
   storePhone      String?
-  
+
   // Address
   addressLine1    String?
   addressLine2    String?
   city            String?  @default("Nairobi")
   country         String?  @default("Kenya")
-  
+
   // Store hours
   openHour        String?  @default("12:00")
   closeHour       String?  @default("18:00")
   openDays        String?  @default("Mon-Sat") // e.g., "Mon-Sat"
-  
+
   // Announcement banner
   bannerEnabled   Boolean  @default(false)
   bannerText      String?
   bannerLink      String?
-  
+
   // SEO
   metaTitle       String?
   metaDescription String?
-  
+
+  // Shipping settings
+  shippingNairobi       Float   @default(200)    // Within Nairobi in KES
+  shippingKenya         Float   @default(500)    // Other areas in Kenya in KES
+  shippingInternational Float   @default(2000)   // Outside Kenya in KES
+  shippingFreeThreshold Float?                    // Free shipping above this amount
+
+  // Loyalty settings
+  loyaltyPointsPerShilling Float @default(0.01) // Points earned per KES spent
+  loyaltyBronzeThreshold   Int   @default(0)
+  loyaltySilverThreshold   Int   @default(200)
+  loyaltyGoldThreshold     Int   @default(500)
+  loyaltyPlatinumThreshold Int   @default(1000)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

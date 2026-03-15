@@ -51,6 +51,7 @@ import {
   User,
   ExternalLink,
   RefreshCw,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -282,7 +283,7 @@ export default function AdminReviewsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                <Star className="w-5 h-5 text-amber-400" />
+                <MessageSquare className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <p className="text-white/40 text-xs">Total Reviews</p>
@@ -430,6 +431,11 @@ export default function AdminReviewsPage() {
                               src={review.imageUrl} 
                               alt="Review" 
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-white/20 text-xs">X</div>';
+                              }}
                             />
                           </div>
                         ) : (
@@ -516,8 +522,8 @@ export default function AdminReviewsPage() {
 
       {/* Review Details Dialog */}
       <Dialog open={!!selectedReview} onOpenChange={() => setSelectedReview(null)}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
-          <DialogHeader>
+        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Review Details</DialogTitle>
             <DialogDescription className="text-white/40">
               Review by @{selectedReview?.username}
@@ -527,9 +533,9 @@ export default function AdminReviewsPage() {
           {isLoadingDetails ? (
             <div className="py-8 text-center text-white/40">Loading...</div>
           ) : selectedReview && (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto flex-1 pr-2 -mr-2">
               {/* Reviewer Info */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
                     <AvatarFallback className="bg-zinc-700 text-white">
@@ -538,7 +544,7 @@ export default function AdminReviewsPage() {
                   </Avatar>
                   <div>
                     <p className="text-white font-medium">@{selectedReview.username}</p>
-                    <p className="text-white/40 text-sm">{selectedReview.customer.email}</p>
+                    <p className="text-white/40 text-sm truncate max-w-[200px]">{selectedReview.customer.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -547,7 +553,7 @@ export default function AdminReviewsPage() {
               </div>
 
               {/* Status Badges */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline" className={cn(
                   selectedReview.approved 
                     ? 'bg-green-500/10 text-green-500 border-green-500/20'
@@ -564,26 +570,48 @@ export default function AdminReviewsPage() {
               </div>
 
               {/* Photo */}
-              {selectedReview.imageUrl && (
-                <div className="rounded-lg overflow-hidden">
-                  <img 
-                    src={selectedReview.imageUrl} 
-                    alt="Review photo" 
-                    className="w-full h-48 object-cover"
-                  />
+              {selectedReview.imageUrl ? (
+                <div className="space-y-2">
+                  <div className="rounded-lg overflow-hidden bg-zinc-800">
+                    <img 
+                      src={selectedReview.imageUrl} 
+                      alt="Review photo" 
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.parentElement!.innerHTML = '<div class="w-full h-48 flex items-center justify-center text-white/40 text-sm p-4 text-center"><span>Image failed to load. Click link below to view.</span></div>';
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-3 h-3 text-white/40 flex-shrink-0" />
+                    <a 
+                      href={selectedReview.imageUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-amber-400 text-xs hover:underline break-all"
+                    >
+                      View Original Image
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-zinc-800 rounded-lg p-8 text-center">
+                  <p className="text-white/40 text-sm">No photo attached</p>
                 </div>
               )}
 
               {/* Comment */}
               <div>
                 <p className="text-white/40 text-sm mb-1">Comment</p>
-                <p className="text-white">{selectedReview.comment}</p>
+                <p className="text-white break-words">{selectedReview.comment}</p>
               </div>
 
               {/* Order Info */}
               {selectedReview.order && (
                 <div className="bg-zinc-800/50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <p className="text-white/40 text-sm">Order</p>
                     <a 
                       href={`/admin/orders`}
@@ -600,11 +628,11 @@ export default function AdminReviewsPage() {
                           <img 
                             src={item.productImage} 
                             alt={item.productName}
-                            className="w-10 h-10 object-cover rounded"
+                            className="w-10 h-10 object-cover rounded flex-shrink-0"
                           />
                         )}
-                        <div>
-                          <p className="text-white text-sm">{item.productName}</p>
+                        <div className="min-w-0">
+                          <p className="text-white text-sm truncate">{item.productName}</p>
                           <p className="text-white/40 text-xs">Qty: {item.quantity}</p>
                         </div>
                       </div>
@@ -628,43 +656,45 @@ export default function AdminReviewsPage() {
                   </p>
                 </div>
               </div>
-
-              {/* Actions */}
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button
-                  variant="outline"
-                  onClick={() => deleteReview(selectedReview.id)}
-                  className="border-red-500/20 text-red-400 hover:bg-red-500/10"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
-                {selectedReview.approved ? (
-                  <Button
-                    onClick={() => {
-                      updateReviewStatus(selectedReview.id, false);
-                      setSelectedReview(null);
-                    }}
-                    className="bg-yellow-500 text-black hover:bg-yellow-400"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Unapprove
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      updateReviewStatus(selectedReview.id, true);
-                      setSelectedReview(null);
-                    }}
-                    className="bg-green-500 text-black hover:bg-green-400"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Approve
-                  </Button>
-                )}
-              </DialogFooter>
             </div>
           )}
+
+          {/* Actions - Fixed at bottom */}
+          <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-white/10 flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => selectedReview && deleteReview(selectedReview.id)}
+              className="flex-1 border-red-500/20 text-red-400 hover:bg-red-500/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+            {selectedReview?.approved ? (
+              <Button
+                onClick={() => {
+                  updateReviewStatus(selectedReview.id, false);
+                  setSelectedReview(null);
+                }}
+                className="flex-1 bg-yellow-500 text-black hover:bg-yellow-400"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Unapprove
+              </Button>
+            ) : (
+              selectedReview && (
+                <Button
+                  onClick={() => {
+                    updateReviewStatus(selectedReview.id, true);
+                    setSelectedReview(null);
+                  }}
+                  className="flex-1 bg-green-500 text-black hover:bg-green-400"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve
+                </Button>
+              )
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </AdminLayout>

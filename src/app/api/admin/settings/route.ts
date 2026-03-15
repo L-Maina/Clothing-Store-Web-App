@@ -35,55 +35,51 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     // Check if settings exist
     const existing = await db.storeSettings.findFirst();
-    
+
+    const settingsData = {
+      storeName: body.storeName,
+      storeDescription: body.storeDescription,
+      storeEmail: body.storeEmail,
+      storePhone: body.storePhone,
+      addressLine1: body.addressLine1,
+      addressLine2: body.addressLine2,
+      city: body.city,
+      country: body.country,
+      openHour: body.openHour,
+      closeHour: body.closeHour,
+      openDays: body.openDays,
+      bannerEnabled: body.bannerEnabled,
+      bannerText: body.bannerText,
+      bannerLink: body.bannerLink,
+      metaTitle: body.metaTitle,
+      metaDescription: body.metaDescription,
+      // Shipping settings
+      shippingNairobi: body.shippingNairobi ?? 200,
+      shippingKenya: body.shippingKenya ?? 500,
+      shippingInternational: body.shippingInternational ?? 2000,
+      shippingFreeThreshold: body.shippingFreeThreshold ?? null,
+      // Loyalty settings
+      loyaltyPointsPerShilling: body.loyaltyPointsPerShilling ?? 0.01,
+      loyaltyBronzeThreshold: body.loyaltyBronzeThreshold ?? 0,
+      loyaltySilverThreshold: body.loyaltySilverThreshold ?? 200,
+      loyaltyGoldThreshold: body.loyaltyGoldThreshold ?? 500,
+      loyaltyPlatinumThreshold: body.loyaltyPlatinumThreshold ?? 1000,
+    };
+
     let settings;
     if (existing) {
       // Update existing settings
       settings = await db.storeSettings.update({
         where: { id: existing.id },
-        data: {
-          storeName: body.storeName,
-          storeDescription: body.storeDescription,
-          storeEmail: body.storeEmail,
-          storePhone: body.storePhone,
-          addressLine1: body.addressLine1,
-          addressLine2: body.addressLine2,
-          city: body.city,
-          country: body.country,
-          openHour: body.openHour,
-          closeHour: body.closeHour,
-          openDays: body.openDays,
-          bannerEnabled: body.bannerEnabled,
-          bannerText: body.bannerText,
-          bannerLink: body.bannerLink,
-          metaTitle: body.metaTitle,
-          metaDescription: body.metaDescription,
-        },
+        data: settingsData,
       });
     } else {
       // Create new settings
       settings = await db.storeSettings.create({
-        data: {
-          storeName: body.storeName,
-          storeDescription: body.storeDescription,
-          storeEmail: body.storeEmail,
-          storePhone: body.storePhone,
-          addressLine1: body.addressLine1,
-          addressLine2: body.addressLine2,
-          city: body.city,
-          country: body.country,
-          openHour: body.openHour,
-          closeHour: body.closeHour,
-          openDays: body.openDays,
-          bannerEnabled: body.bannerEnabled,
-          bannerText: body.bannerText,
-          bannerLink: body.bannerLink,
-          metaTitle: body.metaTitle,
-          metaDescription: body.metaDescription,
-        },
+        data: settingsData,
       });
     }
 

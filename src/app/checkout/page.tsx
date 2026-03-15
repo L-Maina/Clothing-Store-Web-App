@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, CreditCard, Truck, Shield, Check, Loader2, MapPin, Gift, Download, X, Sparkles } from 'lucide-react';
+import { ArrowLeft, CreditCard, Truck, Shield, Check, Loader2, MapPin, Gift, Download, X, Sparkles, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useCartStore, useCurrencyStore, useAuthStore, useCustomerStore } from '@/lib/store';
@@ -57,6 +57,20 @@ export default function CheckoutPage() {
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Shipping settings from API
+  const [shippingSettings, setShippingSettings] = useState<{
+    shippingNairobi: number;
+    shippingKenya: number;
+    shippingInternational: number;
+    shippingFreeThreshold: number | null;
+  }>({
+    shippingNairobi: 200,
+    shippingKenya: 500,
+    shippingInternational: 2000,
+    shippingFreeThreshold: null,
+  });
   
   // Location autocomplete state
   const [citySearch, setCitySearch] = useState('');
@@ -79,6 +93,27 @@ export default function CheckoutPage() {
     cardExpiry: '',
     cardCvc: '',
   });
+
+  // Fetch shipping settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        const data = await response.json();
+        if (data.settings) {
+          setShippingSettings({
+            shippingNairobi: data.settings.shippingNairobi ?? 200,
+            shippingKenya: data.settings.shippingKenya ?? 500,
+            shippingInternational: data.settings.shippingInternational ?? 2000,
+            shippingFreeThreshold: data.settings.shippingFreeThreshold ?? null,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch shipping settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Autofill form if logged in
   useEffect(() => {
@@ -125,10 +160,35 @@ export default function CheckoutPage() {
     setShowCitySuggestions(false);
   };
 
+  // Calculate shipping based on location and settings
+  const calculateShipping = () => {
+    const cityLower = formData.city.toLowerCase().trim();
+    const countryLower = formData.country.toLowerCase().trim();
+    
+    // Free shipping threshold check - only apply if threshold is set (not null)
+    if (shippingSettings.shippingFreeThreshold !== null && subtotal >= shippingSettings.shippingFreeThreshold) {
+      return 0;
+    }
+    
+    // International shipping
+    if (countryLower !== 'kenya') {
+      return shippingSettings.shippingInternational;
+    }
+    
+    // Check if Nairobi (exact match or contains nairobi)
+    const nairobiAreas = ['nairobi', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'parklands', 'embakasi', 'kasarani'];
+    const isNairobi = nairobiAreas.some(area => cityLower.includes(area)) || cityLower === 'nairobi';
+    
+    if (isNairobi) {
+      return shippingSettings.shippingNairobi;
+    }
+    
+    // Other areas in Kenya
+    return shippingSettings.shippingKenya;
+  };
+
   const subtotal = getSubtotal();
-  const freeShippingThreshold = 10000;
-  const baseShipping = formData.city.toLowerCase() === 'nairobi' ? 500 : 800;
-  const shipping = subtotal >= freeShippingThreshold ? 0 : baseShipping;
+  const shipping = calculateShipping();
   const tax = subtotal * 0.16;
   const total = subtotal + shipping + tax;
   const loyaltyPointsEarned = Math.floor(total / 100);
@@ -192,7 +252,7 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error('Order error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to place order. Please try again.');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to place order. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -530,7 +590,14 @@ export default function CheckoutPage() {
                 
                 {/* Shipping Info */}
                 <div className="mt-4 p-3 bg-zinc-800/50 text-sm text-white/60">
-                  <p>🚚 Nairobi: KSh 500 | Other areas: KSh 800 | Free shipping on orders over KSh 10,000</p>
+                  <p>
+                    🚚 Nairobi: KSh {shippingSettings.shippingNairobi} | 
+                    Kenya: KSh {shippingSettings.shippingKenya} | 
+                    International: KSh {shippingSettings.shippingInternational}
+                    {shippingSettings.shippingFreeThreshold !== null && (
+                      <span> | Free shipping on orders over KSh {shippingSettings.shippingFreeThreshold.toLocaleString()}</span>
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -672,6 +739,23 @@ export default function CheckoutPage() {
                   </div>
                 )}
               </div>
+
+              {/* Error Message */}
+              {errorMessage && (
+                <div className="bg-red-500/10 border border-red-500/30 p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-red-400 font-medium">Order Failed</p>
+                    <p className="text-white/60 text-sm mt-1">{errorMessage}</p>
+                  </div>
+                  <button 
+                    onClick={() => setErrorMessage(null)}
+                    className="text-white/40 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
               {/* Submit */}
               <Button

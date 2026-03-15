@@ -169,84 +169,19 @@ export default function AdminOrders() {
     fetchOrders();
   }, [fetchOrders]);
 
-  // SSE connection for real-time updates
+  // Poll for updates every 30 seconds instead of SSE (more reliable)
   useEffect(() => {
-    let eventSource: EventSource | null = null;
-    let reconnectTimeout: NodeJS.Timeout | null = null;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-    const baseReconnectDelay = 1000;
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
 
-    const connect = () => {
-      if (eventSource) {
-        eventSource.close();
-      }
-
-      try {
-        eventSource = new EventSource('/api/sync/events');
-
-        eventSource.onopen = () => {
-          console.log('Admin Orders: SSE Connected');
-          setIsConnected(true);
-          reconnectAttempts = 0;
-        };
-
-        eventSource.onmessage = (event) => {
-          try {
-            const data: SyncEvent = JSON.parse(event.data);
-
-            if (data.type === 'ORDER_UPDATE') {
-              console.log('Admin Orders: Order update received', data.data);
-              
-              // Show notification
-              toast({
-                title: 'Order Update',
-                description: `Order ${(data.data as { orderNumber?: string }).orderNumber || 'Unknown'} status: ${(data.data as { status?: string }).status || 'Updated'}`,
-                action: <Bell className="w-4 h-4" />,
-              });
-
-              // Refresh orders list
-              fetchOrders();
-            }
-          } catch (error) {
-            console.error('Failed to parse SSE event:', error);
-          }
-        };
-
-        eventSource.onerror = () => {
-          console.error('Admin Orders: SSE Connection error');
-          setIsConnected(false);
-          eventSource?.close();
-          eventSource = null;
-
-          // Attempt reconnect with exponential backoff
-          if (reconnectAttempts < maxReconnectAttempts) {
-            const delay = baseReconnectDelay * Math.pow(2, reconnectAttempts);
-            console.log(`Admin Orders: Reconnecting in ${delay}ms`);
-            
-            reconnectTimeout = setTimeout(() => {
-              reconnectAttempts++;
-              connect();
-            }, delay);
-          }
-        };
-      } catch (error) {
-        console.error('Failed to create EventSource:', error);
-        setIsConnected(false);
-      }
-    };
-
-    connect();
-
-    return () => {
-      if (eventSource) {
-        eventSource.close();
-      }
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-      }
-    };
-  }, [fetchOrders, toast]);
+  // Mark as connected since we're using polling
+  useEffect(() => {
+    setIsConnected(true);
+  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-KE', {

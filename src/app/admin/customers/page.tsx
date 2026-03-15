@@ -35,11 +35,19 @@ import {
   Eye,
   Mail,
   ShoppingBag,
-  Star,
   Trash2,
   UserCheck,
   UserX,
+  ArrowLeft,
+  Package,
+  X,
+  Users,
+  Crown,
+  Sparkles,
+  Trophy,
+  UserPlus,
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface Customer {
   id: string;
@@ -54,12 +62,38 @@ interface Customer {
   createdAt: Date;
 }
 
+interface CustomerOrder {
+  id: string;
+  orderNumber: string;
+  status: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  total: number;
+  subtotal: number;
+  shipping: number;
+  currency: string;
+  createdAt: string;
+  items: {
+    id: string;
+    productName: string;
+    productId: string;
+    productImage: string | null;
+    quantity: number;
+    price: number;
+    color: string | null;
+    size: string | null;
+  }[];
+}
+
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('all');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [showOrdersView, setShowOrdersView] = useState(false);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -157,6 +191,36 @@ export default function AdminCustomers() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    const statusStyles: Record<string, string> = {
+      PENDING: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+      PROCESSING: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+      SHIPPED: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+      DELIVERED: 'bg-green-500/10 text-green-400 border-green-500/30',
+      CANCELLED: 'bg-red-500/10 text-red-400 border-red-500/30',
+    };
+    return (
+      <Badge variant="outline" className={statusStyles[status] || 'bg-zinc-500/10 text-zinc-400'}>
+        {status}
+      </Badge>
+    );
+  };
+
+  const fetchCustomerOrders = async (customerId: string) => {
+    setLoadingOrders(true);
+    try {
+      const response = await fetch(`/api/admin/customers/${customerId}/orders`);
+      const data = await response.json();
+      setCustomerOrders(data.orders || []);
+      setShowOrdersView(true);
+    } catch (error) {
+      console.error('Failed to fetch customer orders:', error);
+      setCustomerOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch = 
       customer.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -183,7 +247,7 @@ export default function AdminCustomers() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                <Star className="w-5 h-5 text-blue-500" />
+                <Users className="w-5 h-5 text-blue-500" />
               </div>
               <div>
                 <p className="text-white/40 text-xs">Total Customers</p>
@@ -210,8 +274,8 @@ export default function AdminCustomers() {
         <Card className="bg-zinc-900 border-white/10">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-300/20 to-slate-100/20 rounded-lg flex items-center justify-center">
-                <Star className="w-5 h-5 text-slate-300" />
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-lg flex items-center justify-center">
+                <Crown className="w-5 h-5 text-purple-400" />
               </div>
               <div>
                 <p className="text-white/40 text-xs">Platinum Members</p>
@@ -225,7 +289,7 @@ export default function AdminCustomers() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                <Star className="w-5 h-5 text-amber-500" />
+                <Trophy className="w-5 h-5 text-amber-500" />
               </div>
               <div>
                 <p className="text-white/40 text-xs">New This Month</p>
@@ -392,15 +456,32 @@ export default function AdminCustomers() {
       </div>
 
       {/* Customer Details Dialog */}
-      <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
+      <Dialog open={!!selectedCustomer} onOpenChange={() => {
+        setSelectedCustomer(null);
+        setShowOrdersView(false);
+        setCustomerOrders([]);
+      }}>
+        <DialogContent className={`bg-zinc-900 border-white/10 text-white ${showOrdersView ? 'max-w-3xl' : 'max-w-lg'}`}>
           <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
+            <div className="flex items-center gap-2">
+              {showOrdersView && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/60 hover:text-white"
+                  onClick={() => setShowOrdersView(false)}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+              )}
+              <DialogTitle>{showOrdersView ? 'Customer Orders' : 'Customer Details'}</DialogTitle>
+            </div>
             <DialogDescription className="text-white/40">
               {selectedCustomer?.name || selectedCustomer?.email}
             </DialogDescription>
           </DialogHeader>
-          {selectedCustomer && (
+          {selectedCustomer && !showOrdersView && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16">
@@ -435,10 +516,10 @@ export default function AdminCustomers() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-amber-400 rounded-full"
-                      style={{ 
-                        width: `${Math.min((selectedCustomer.loyaltyPoints / 1000) * 100, 100)}%` 
+                      style={{
+                        width: `${Math.min((selectedCustomer.loyaltyPoints / 1000) * 100, 100)}%`
                       }}
                     />
                   </div>
@@ -465,10 +546,107 @@ export default function AdminCustomers() {
                   <Mail className="w-4 h-4 mr-2" />
                   Send Email
                 </Button>
-                <Button variant="outline" className="border-white/10 text-white/60 hover:text-white hover:bg-white/5">
-                  View Orders
+                <Button
+                  variant="outline"
+                  className="border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+                  onClick={() => fetchCustomerOrders(selectedCustomer.id)}
+                  disabled={loadingOrders}
+                >
+                  {loadingOrders ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <Package className="w-4 h-4 mr-2" />
+                      View Orders
+                    </>
+                  )}
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* Orders View */}
+          {selectedCustomer && showOrdersView && (
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              {loadingOrders ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                </div>
+              ) : customerOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                  <p className="text-white/40">No orders found for this customer</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {customerOrders.map((order) => (
+                    <Card key={order.id} className="bg-zinc-800/50 border-white/10">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <p className="text-white font-medium">{order.orderNumber}</p>
+                            {getStatusBadge(order.status)}
+                          </div>
+                          <p className="text-white/40 text-sm">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2 mb-3">
+                          {order.items.map((item) => (
+                            <div key={item.id} className="flex items-center gap-3 bg-zinc-700/30 rounded-lg p-2">
+                              <div className="w-12 h-12 bg-zinc-700 rounded-md overflow-hidden flex-shrink-0">
+                                {item.productImage ? (
+                                  <Image
+                                    src={item.productImage}
+                                    alt={item.productName}
+                                    width={48}
+                                    height={48}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Package className="w-5 h-5 text-white/30" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white text-sm font-medium truncate">{item.productName}</p>
+                                <p className="text-white/40 text-xs">
+                                  {item.color && <span>{item.color}</span>}
+                                  {item.color && item.size && <span> / </span>}
+                                  {item.size && <span>{item.size}</span>}
+                                  <span className="mx-2">x</span>
+                                  {item.quantity}
+                                </p>
+                              </div>
+                              <p className="text-amber-400 text-sm font-medium">
+                                {formatPrice(item.price)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                          <div className="flex items-center gap-4 text-sm text-white/60">
+                            <span>{order.paymentMethod}</span>
+                            <Badge variant="outline" className={order.paymentStatus === 'PAID' ? 'border-green-500/30 text-green-400' : 'border-yellow-500/30 text-yellow-400'}>
+                              {order.paymentStatus}
+                            </Badge>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white/40 text-xs">Total</p>
+                            <p className="text-amber-400 font-bold">{formatPrice(order.total)}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

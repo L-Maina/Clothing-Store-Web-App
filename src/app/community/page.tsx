@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, Instagram, Camera, Heart, MessageCircle, Share2, 
-  Star, CheckCircle, X, Upload, ChevronDown, Sparkles, User
+import {
+  ArrowLeft, Instagram, Camera, Heart, MessageCircle, Share2,
+  Star, CheckCircle, X, Upload, ChevronDown, Sparkles, User, Award, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -77,11 +77,13 @@ export default function CommunityPage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [deliveredOrders, setDeliveredOrders] = useState<DeliveredOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<DeliveredOrder | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<DeliveredOrder['items'][0] | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
   
   const { isLoggedIn, user, openLoginModal } = useAuthStore();
   const { toast } = useToast();
@@ -147,10 +149,10 @@ export default function CommunityPage() {
   };
 
   const handleSubmitReview = async () => {
-    if (!selectedOrder || !rating || !comment || !username) {
+    if (!selectedOrder || !selectedProduct || !rating || !comment || !username) {
       toast({
         title: 'Missing fields',
-        description: 'Please fill in all required fields',
+        description: 'Please select a product and fill in all required fields',
         variant: 'destructive',
       });
       return;
@@ -176,7 +178,7 @@ export default function CommunityPage() {
         },
         body: JSON.stringify({
           orderId: selectedOrder.id,
-          productId: selectedOrder.items[0]?.productId || null,
+          productId: selectedProduct.productId,
           rating,
           comment,
           imageUrl: imageUrl || null,
@@ -198,6 +200,7 @@ export default function CommunityPage() {
       // Reset form and close modal
       setIsReviewModalOpen(false);
       setSelectedOrder(null);
+      setSelectedProduct(null);
       setRating(5);
       setComment('');
       setImageUrl('');
@@ -435,6 +438,10 @@ export default function CommunityPage() {
                               src={review.imageUrl}
                               alt="Review photo"
                               className="w-full h-48 object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
                             />
                           </div>
                         )}
@@ -453,7 +460,7 @@ export default function CommunityPage() {
                   </div>
                 ) : (
                   <div className="bg-zinc-900 border border-white/10 p-12 text-center">
-                    <Star className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                    <Award className="w-12 h-12 text-white/20 mx-auto mb-4" />
                     <p className="text-white/50">No reviews yet.</p>
                     <p className="text-white/30 text-sm mt-2">Be the first to share your experience!</p>
                   </div>
@@ -533,9 +540,16 @@ export default function CommunityPage() {
                   <Label className="text-white/60">Select Order *</Label>
                   <Select
                     value={selectedOrder?.id || ''}
-                    onValueChange={(value) => 
-                      setSelectedOrder(deliveredOrders.find(o => o.id === value) || null)
-                    }
+                    onValueChange={(value) => {
+                      const order = deliveredOrders.find(o => o.id === value) || null;
+                      setSelectedOrder(order);
+                      // Auto-select first product
+                      if (order && order.items.length > 0) {
+                        setSelectedProduct(order.items[0]);
+                      } else {
+                        setSelectedProduct(null);
+                      }
+                    }}
                   >
                     <SelectTrigger className="bg-zinc-800 border-white/10 text-white">
                       <SelectValue placeholder="Choose an order to review" />
@@ -550,25 +564,43 @@ export default function CommunityPage() {
                   </Select>
                 </div>
 
-                {/* Show selected order items */}
-                {selectedOrder && (
-                  <div className="bg-zinc-800/50 rounded-lg p-4 space-y-2">
-                    <p className="text-white/60 text-sm">Order Items:</p>
-                    {selectedOrder.items.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        {item.productImage && (
-                          <img 
-                            src={item.productImage} 
-                            alt={item.productName}
-                            className="w-10 h-10 object-cover rounded"
-                          />
-                        )}
-                        <div>
-                          <p className="text-white text-sm">{item.productName}</p>
-                          <p className="text-white/40 text-xs">{item.color} • {item.size}</p>
-                        </div>
-                      </div>
-                    ))}
+                {/* Select Product from Order */}
+                {selectedOrder && selectedOrder.items.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-white/60">Select Product to Review *</Label>
+                    <div className="space-y-2">
+                      {selectedOrder.items.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedProduct(item)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                            selectedProduct?.productId === item.productId
+                              ? 'border-amber-400 bg-amber-400/10'
+                              : 'border-white/10 bg-zinc-800/50 hover:border-white/30'
+                          }`}
+                        >
+                          {item.productImage ? (
+                            <img 
+                              src={item.productImage} 
+                              alt={item.productName}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-zinc-700 rounded flex items-center justify-center">
+                              <Camera className="w-5 h-5 text-white/30" />
+                            </div>
+                          )}
+                          <div className="text-left flex-1">
+                            <p className="text-white text-sm font-medium">{item.productName}</p>
+                            <p className="text-white/40 text-xs">{item.color} • {item.size} • Qty: {item.quantity}</p>
+                          </div>
+                          {selectedProduct?.productId === item.productId && (
+                            <CheckCircle className="w-5 h-5 text-amber-400" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -593,17 +625,86 @@ export default function CommunityPage() {
                 </div>
 
                 {/* Photo URL */}
-                <div className="space-y-2">
-                  <Label className="text-white/60">Photo URL (optional)</Label>
-                  <Input
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/your-photo.jpg"
-                    className="bg-zinc-800 border-white/10 text-white placeholder:text-white/40"
-                  />
-                  <p className="text-white/30 text-xs">
-                    Upload your photo to Instagram/TikTok and paste the image URL here
-                  </p>
+                <div className="space-y-3">
+                  <Label className="text-white/60">Photo (optional)</Label>
+                  
+                  {/* Instagram URL Auto-fetch */}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="Paste Instagram post link or image URL"
+                        className="flex-1 bg-zinc-800 border-white/10 text-white placeholder:text-white/40"
+                      />
+                      {(imageUrl.includes('instagram.com') || imageUrl.includes('instagr.am')) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={isLoadingImage}
+                          onClick={async () => {
+                            setIsLoadingImage(true);
+                            try {
+                              const res = await fetch(`/api/instagram-image?url=${encodeURIComponent(imageUrl)}`);
+                              const data = await res.json();
+                              if (data.imageUrl) {
+                                setImageUrl(data.imageUrl);
+                                toast({
+                                  title: 'Image found!',
+                                  description: 'Instagram image loaded successfully',
+                                });
+                              } else {
+                                toast({
+                                  title: 'Could not load image',
+                                  description: data.hint || 'Try using a direct image URL',
+                                  variant: 'destructive',
+                                });
+                              }
+                            } catch {
+                              toast({
+                                title: 'Error',
+                                description: 'Failed to fetch Instagram image',
+                                variant: 'destructive',
+                              });
+                            } finally {
+                              setIsLoadingImage(false);
+                            }
+                          }}
+                          className="border-amber-400/30 text-amber-400 hover:bg-amber-400/10"
+                        >
+                          {isLoadingImage ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            'Load'
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Image Preview */}
+                    {imageUrl && !imageUrl.includes('instagram.com') && !imageUrl.includes('instagr.am') && (
+                      <div className="rounded-lg overflow-hidden bg-zinc-800 border border-white/10">
+                        <img 
+                          src={imageUrl} 
+                          alt="Preview" 
+                          className="w-full h-32 object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.parentElement!.innerHTML = '<div class="w-full h-32 flex items-center justify-center text-red-400 text-sm p-4 text-center">Image failed to load. Check the URL.</div>';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="text-white/40 text-xs space-y-1">
+                      <p>💡 <strong>Easy options:</strong></p>
+                      <ul className="list-disc list-inside space-y-0.5 text-white/30">
+                        <li>Paste an Instagram post link and click "Load" to auto-get the image</li>
+                        <li>Or paste any direct image URL</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Comment */}
@@ -612,7 +713,7 @@ export default function CommunityPage() {
                   <Textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    placeholder="Share your experience with this order..."
+                    placeholder="Share your experience with this product..."
                     className="bg-zinc-800 border-white/10 text-white placeholder:text-white/40 min-h-[100px]"
                   />
                 </div>
@@ -620,7 +721,7 @@ export default function CommunityPage() {
                 {/* Submit */}
                 <Button
                   onClick={handleSubmitReview}
-                  disabled={isSubmitting || !selectedOrder || !username || !comment}
+                  disabled={isSubmitting || !selectedOrder || !selectedProduct || !username || !comment}
                   className="w-full bg-amber-400 text-black hover:bg-amber-300 font-bold"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Review'}

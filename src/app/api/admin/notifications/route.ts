@@ -8,6 +8,9 @@ interface NotificationItem {
   time: string;
   read: boolean;
   link: string;
+  orderId?: string;
+  customerId?: string;
+  productId?: string;
 }
 
 function getTimeAgo(date: Date): string {
@@ -120,7 +123,7 @@ export async function GET() {
     });
 
     // Get recent newsletter subscribers
-    const recentSubscribers = await db.newsletterSubscriber.findMany({
+    const recentSubscribers = await db.subscriber.findMany({
       where: {
         createdAt: {
           gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -165,6 +168,47 @@ export async function GET() {
         link: `/admin/reviews`,
       });
     });
+
+    // Get recent community reviews (last 7 days)
+    const recentCommunityReviews = await db.communityReview.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      include: {
+        customer: { select: { name: true, email: true } },
+      },
+    });
+
+    recentCommunityReviews.forEach((review) => {
+      notifications.push({
+        id: `community-review-${review.id}`,
+        type: 'review',
+        message: `New community review from @${review.username} (${review.rating}-star)`,
+        time: getTimeAgo(review.createdAt),
+        read: false,
+        link: `/admin/reviews`,
+      });
+    });
+
+    // Get pending community reviews count
+    const pendingCommunityReviews = await db.communityReview.count({
+      where: { approved: false },
+    });
+
+    if (pendingCommunityReviews > 0) {
+      notifications.push({
+        id: `community-reviews-pending`,
+        type: 'review',
+        message: `${pendingCommunityReviews} community review${pendingCommunityReviews > 1 ? 's' : ''} pending approval`,
+        time: 'Pending',
+        read: false,
+        link: `/admin/reviews`,
+      });
+    }
 
     // Get pending community photos
     const pendingCommunityPhotos = await db.communityPhoto.count({

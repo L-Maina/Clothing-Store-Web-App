@@ -15,17 +15,17 @@ import {
   X,
   Bell,
   ChevronDown,
-  Image,
+  Image as ImageIcon,
   Mail,
   Share2,
   TrendingUp,
   ShoppingCart,
   User,
-  Star,
   Loader2,
   Clock,
   AlertTriangle,
   MessageSquare,
+  MessageCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -54,8 +54,8 @@ const navigation = [
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Drops', href: '/admin/drops', icon: Clock },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
-  { name: 'Reviews', href: '/admin/reviews', icon: Star },
-  { name: 'Community', href: '/admin/community', icon: Image },
+  { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
+  { name: 'Community', href: '/admin/community', icon: ImageIcon },
   { name: 'Social', href: '/admin/social', icon: Share2 },
   { name: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
@@ -100,14 +100,21 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
     }
   }, [isAdminAuthenticated, pathname, router]);
 
-  // Fetch real notifications
+  // Fetch real notifications with auto-refresh
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const response = await fetch('/api/admin/notifications');
         if (response.ok) {
           const data = await response.json();
-          setNotifications(data.notifications || []);
+          // Get read notification IDs from localStorage
+          const readIds = JSON.parse(localStorage.getItem('admin-read-notifications') || '[]');
+          // Mark notifications as read if they were previously read
+          const notificationsWithReadState = (data.notifications || []).map((n: Notification) => ({
+            ...n,
+            read: readIds.includes(n.id)
+          }));
+          setNotifications(notificationsWithReadState);
         }
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
@@ -118,33 +125,36 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
 
     if (pathname !== '/admin/login' && isAdminAuthenticated) {
       fetchNotifications();
+      
+      // Auto-refresh notifications every 30 seconds
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
     }
   }, [pathname, isAdminAuthenticated]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAsRead = async (id: string) => {
-    setNotifications(notifications.map(n => 
+  const markAsRead = (id: string) => {
+    // Update local state
+    setNotifications(prev => prev.map(n => 
       n.id === id ? { ...n, read: true } : n
     ));
     
-    // Mark as read on server
-    try {
-      await fetch(`/api/admin/notifications/${id}/read`, { method: 'POST' });
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+    // Save to localStorage
+    const readIds = JSON.parse(localStorage.getItem('admin-read-notifications') || '[]');
+    if (!readIds.includes(id)) {
+      readIds.push(id);
+      localStorage.setItem('admin-read-notifications', JSON.stringify(readIds));
     }
   };
 
-  const markAllAsRead = async () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const markAllAsRead = () => {
+    // Update local state
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     
-    // Mark all as read on server
-    try {
-      await fetch('/api/admin/notifications/read-all', { method: 'POST' });
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
-    }
+    // Save all IDs to localStorage
+    const allIds = notifications.map(n => n.id);
+    localStorage.setItem('admin-read-notifications', JSON.stringify(allIds));
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -170,7 +180,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
       case 'review':
         return <MessageSquare className="w-4 h-4 text-yellow-400" />;
       case 'community':
-        return <Image className="w-4 h-4 text-pink-400" />;
+        return <ImageIcon className="w-4 h-4 text-pink-400" />;
       default:
         return <Bell className="w-4 h-4 text-white/40" />;
     }

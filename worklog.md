@@ -326,3 +326,213 @@ Implement community reviews and real-time admin updates for a Next.js 16 e-comme
 - useToast for user feedback notifications
 
 #### Lint Status: ✅ All checks pass
+
+---
+## Task ID: 4 - Code Maintenance
+### Work Task
+Fix issues reported by user including:
+1. Admin reviews page - photo not showing and button collision
+2. Admin auth - should require login each session (not persist across tabs)
+3. Replace inappropriate Star icon usages with more suitable icons
+4. Fix image error handling for review photos
+
+### Work Summary
+
+#### Files Modified:
+
+1. **`/src/components/admin/AdminLayout.tsx`**
+   - Renamed `Image` import to `ImageIcon` to avoid ESLint confusion with next/image
+   - Updated usage in navigation and notification icon helper
+   - Fixed alt-text lint warning
+
+2. **`/src/app/admin/reviews/page.tsx`**
+   - Fixed button collision in review details dialog - changed from `DialogFooter` to proper flex layout
+   - Improved photo display with proper container and error handling
+   - Added clickable URL link for photo source
+   - Added proper image error handling (replaces broken images with "Image failed to load" placeholder)
+   - Fixed thumbnail image error handling in table
+
+3. **`/src/lib/admin-auth.ts`**
+   - Changed `partialize` to return empty object `() => ({})` 
+   - Admin auth no longer persists across sessions (requires login after closing tab)
+   - Previous: `partialize: (state) => ({ adminUser: state.adminUser })`
+   - New: `partialize: () => ({})`
+
+4. **`/src/app/community/page.tsx`**
+   - Added image error handling for review photos (hides broken images gracefully)
+
+#### Icon Replacements Summary:
+- Stars used for **ratings** are appropriate and unchanged
+- Navigation icons already use appropriate icons (MessageSquare for Reviews, ImageIcon for Community, etc.)
+- Tier icons use Medal, Award, Crown, Sparkles appropriately
+- Newsletter benefits use Zap, Clock, Tag icons
+
+#### Key Fixes:
+1. **Photo Display** - Review photos now show properly with error handling
+2. **Button Layout** - Approve/Delete buttons no longer collide on mobile
+3. **Session Auth** - Admin must re-authenticate after closing browser tab
+4. **Image Fallbacks** - Broken image URLs handled gracefully
+
+#### Lint Status: ✅ All checks pass
+
+---
+## Task ID: 5 - Notification System Fix & Real-time Updates
+### Work Task
+Fix admin notifications to include community reviews, ensure all events trigger proper notifications, and update worklog after changes.
+
+### Work Summary
+
+#### Files Modified:
+
+1. **`/src/app/api/admin/notifications/route.ts`**
+   - Added notifications for new community reviews (from CommunityReview model)
+   - Added pending community reviews count notification
+   - Shows username and rating for each community review
+   - Links to `/admin/reviews` for review management
+
+2. **`/next.config.ts`**
+   - Added `allowedDevOrigins` for preview panel cross-origin support
+   - Allows `.space.z.ai` and `localhost` origins
+
+3. **`/src/components/admin/AdminLayout.tsx`**
+   - Renamed `Image` import to `ImageIcon` to avoid ESLint confusion
+   - Fixed alt-text lint warning
+
+4. **`/src/app/admin/reviews/page.tsx`**
+   - Fixed button collision in review details dialog
+   - Improved photo display with error handling
+   - Added clickable URL link for photo source
+
+5. **`/src/lib/admin-auth.ts`**
+   - Changed to session-only auth (no persistence across tabs)
+
+6. **`/src/app/community/page.tsx`**
+   - Added image error handling for review photos
+
+### Notification Types Now Supported:
+1. **New Orders** - Shows order number, links to orders page
+2. **New Customers** - Shows customer name/email, links to customers page
+3. **Low Stock Products** - Shows product name and quantity left
+4. **Out of Stock Products** - Shows product name
+5. **Newsletter Subscribers** - Shows count of new subscribers
+6. **Product Reviews** - Shows rating and product name
+7. **Community Reviews** - Shows username and rating (NEW)
+8. **Pending Reviews Count** - Shows count of reviews needing approval (NEW)
+9. **Pending Community Photos** - Shows count of photos needing approval
+
+### Key Features:
+- All notifications sorted by priority (stock alerts first, then by time)
+- Real-time updates via SSE connection in AdminLayout
+- Auto-refresh every 30 seconds
+- Read state persisted to localStorage
+
+#### Lint Status: ✅ All checks pass
+
+---
+## Task ID: 6 - Dialog Layout & Instagram Image Fixes
+### Work Task
+Fix admin review dialog overflow issues and simplify Instagram image sharing for customers.
+
+### Work Summary
+
+#### Files Created:
+
+1. **`/src/app/api/instagram-image/route.ts`** - Instagram Image Fetcher API
+   - GET endpoint that accepts Instagram post URLs
+   - Extracts og:image from Instagram page HTML
+   - Returns direct image URL for use in reviews
+   - Provides helpful error messages if extraction fails
+
+#### Files Modified:
+
+1. **`/src/app/admin/reviews/page.tsx`** - Dialog Layout Fix
+   - Added `max-h-[90vh]` and `overflow-hidden flex flex-col` to DialogContent
+   - Made content scrollable with `overflow-y-auto flex-1`
+   - Fixed text overflow with `break-words`, `truncate`, and `flex-wrap`
+   - Fixed image container with proper sizing
+   - Actions section now fixed at bottom with `flex-shrink-0`
+   - Changed "Image failed to load" to show helpful message with link
+
+2. **`/src/app/community/page.tsx`** - Instagram Auto-Load Feature
+   - Added "Load" button that appears when Instagram URL is detected
+   - Auto-fetches direct image URL from Instagram posts
+   - Added image preview before submission
+   - Added helpful instructions for customers
+   - Simplified the UI - just paste Instagram link and click Load
+
+### Customer Experience Improvements:
+- **Before**: Customers had to right-click → "Copy Image Address" (confusing)
+- **After**: Just paste Instagram post link and click "Load" button
+
+### Admin Experience Improvements:
+- Dialog no longer overflows screen
+- All content properly contained with scrolling
+- Fixed bottom action buttons
+- Better error messages for failed images
+
+#### Lint Status: ✅ All checks pass
+
+---
+## Task ID: 7 - Shipping Zones Overhaul
+### Work Task
+Replace the hardcoded shipping costs with configurable three-zone shipping system:
+1. Within Nairobi
+2. Other areas in Kenya
+3. International (Outside Kenya)
+
+### Work Summary
+
+#### Files Modified:
+
+1. **`/prisma/schema.prisma`**
+   - Replaced `shippingBaseRate` with three new fields:
+     - `shippingNairobi` (default: 200 KES) - Within Nairobi
+     - `shippingKenya` (default: 500 KES) - Other areas in Kenya
+     - `shippingInternational` (default: 2000 KES) - Outside Kenya
+   - Kept `shippingFreeThreshold` for free shipping over a certain amount
+
+2. **`/src/app/admin/settings/page.tsx`**
+   - Updated interface to include new shipping fields
+   - Updated default settings with new shipping values
+   - Created visual shipping zones card with:
+     - Green marker for Nairobi zone
+     - Yellow marker for Kenya zone
+     - Blue marker for International zone
+   - Each zone shows KES input with helpful description
+
+3. **`/src/app/api/admin/settings/route.ts`**
+   - Updated POST handler to save all three shipping zones
+   - Removed old `shippingBaseRate` field
+
+4. **`/src/app/checkout/page.tsx`**
+   - Added `shippingSettings` state to store fetched settings
+   - Added useEffect to fetch settings from `/api/admin/settings`
+   - Replaced hardcoded shipping calculation with dynamic `calculateShipping()` function
+   - Function checks:
+     - Free shipping threshold first
+     - International (country not Kenya)
+     - Nairobi areas (includes Westlands, Kilimani, Karen, etc.)
+     - Other Kenya areas
+   - Updated shipping info display to show dynamic rates
+
+5. **`/src/app/api/orders/route.ts`**
+   - Added fetch for store settings before calculating shipping
+   - Implemented same zone-based calculation as checkout page
+   - Shipping now dynamically calculated based on admin settings
+
+### Shipping Zone Detection:
+- **Nairobi**: Detects city containing: nairobi, westlands, kilimani, karen, lavington, kileleshwa, parklands, embakasi, kasarani
+- **Kenya**: Country is "Kenya" but city not in Nairobi areas
+- **International**: Country is not "Kenya"
+
+### Customer Experience:
+- Shipping rates displayed in checkout are now accurate to admin settings
+- Free shipping threshold works across all zones
+- Country selector includes: Kenya, Uganda, Tanzania, Nigeria, South Africa, US, UK, UAE, Other
+
+### Admin Experience:
+- Three clearly labeled shipping zones in settings
+- Each zone has helpful description
+- Free shipping threshold is optional (leave empty to disable)
+
+#### Lint Status: ✅ All checks pass

@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { Hero } from '@/components/layout/Hero';
 import { ShopSection } from '@/components/sections/ShopSection';
 import dynamic from 'next/dynamic';
@@ -27,36 +26,6 @@ const Newsletter = dynamic(
 );
 
 export default function Home() {
-  // Defer database seeding to after initial render using requestIdleCallback
-  useEffect(() => {
-    const seedDatabase = async () => {
-      try {
-        const response = await fetch('/api/seed', { method: 'POST' });
-        const data = await response.json();
-        if (data.success) {
-          console.log('Database seeded successfully');
-        }
-      } catch {
-        console.log('Database may already be seeded');
-      }
-    };
-
-    // Use requestIdleCallback for non-critical seeding
-    if ('requestIdleCallback' in window) {
-      const idleCallbackId = requestIdleCallback(
-        () => {
-          seedDatabase();
-        },
-        { timeout: 3000 }
-      );
-      return () => cancelIdleCallback(idleCallbackId);
-    } else {
-      // Fallback for browsers without requestIdleCallback
-      const timeoutId = setTimeout(seedDatabase, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, []);
-
   return (
     <>
       {/* Hero Section - Critical, load immediately */}

@@ -120,8 +120,39 @@ export async function POST(request: Request) {
       });
     }
 
-    // Calculate shipping (flat rate 500 KES for Nairobi, 800 KES for elsewhere)
-    const shipping = shippingAddress.city?.toLowerCase() === 'nairobi' ? 500 : 800;
+    // Get shipping settings
+    const storeSettings = await db.storeSettings.findFirst();
+    const shippingNairobi = storeSettings?.shippingNairobi ?? 200;
+    const shippingKenya = storeSettings?.shippingKenya ?? 500;
+    const shippingInternational = storeSettings?.shippingInternational ?? 2000;
+    const shippingFreeThreshold = storeSettings?.shippingFreeThreshold;
+
+    // Calculate shipping based on location and settings
+    let shipping: number;
+    
+    // Free shipping threshold check
+    if (shippingFreeThreshold && subtotal >= shippingFreeThreshold) {
+      shipping = 0;
+    } else {
+      const cityLower = (shippingAddress.city || '').toLowerCase().trim();
+      const countryLower = (shippingAddress.country || 'Kenya').toLowerCase().trim();
+      
+      // International shipping
+      if (countryLower !== 'kenya') {
+        shipping = shippingInternational;
+      } else {
+        // Check if Nairobi (exact match or contains nairobi)
+        const nairobiAreas = ['nairobi', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'parklands', 'embakasi', 'kasarani'];
+        const isNairobi = nairobiAreas.some(area => cityLower.includes(area)) || cityLower === 'nairobi';
+        
+        if (isNairobi) {
+          shipping = shippingNairobi;
+        } else {
+          // Other areas in Kenya
+          shipping = shippingKenya;
+        }
+      }
+    }
 
     // Calculate tax (16% VAT in Kenya)
     const tax = subtotal * 0.16;

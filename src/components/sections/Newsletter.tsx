@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Gift, ArrowRight, Sparkles, Loader2, LogIn } from 'lucide-react';
+import { Mail, Gift, ArrowRight, Sparkles, Loader2, LogIn, Zap, Clock, Tag } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 
@@ -133,15 +133,15 @@ export function Newsletter() {
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center gap-6 mt-10 pt-8 border-t border-white/5">
             <div className="flex items-center gap-2 text-white/40 text-sm">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Zap className="w-4 h-4 text-amber-400" />
               <span>Exclusive drops</span>
             </div>
             <div className="flex items-center gap-2 text-white/40 text-sm">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Clock className="w-4 h-4 text-amber-400" />
               <span>Early access</span>
             </div>
             <div className="flex items-center gap-2 text-white/40 text-sm">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Tag className="w-4 h-4 text-amber-400" />
               <span>Member-only sales</span>
             </div>
           </div>

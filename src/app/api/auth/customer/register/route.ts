@@ -45,6 +45,28 @@ export async function POST(request: Request) {
     });
 
     if (existingCustomer) {
+      // If existing customer has no password (guest), allow them to upgrade to registered account
+      if (!existingCustomer.password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const updatedCustomer = await db.customer.update({
+          where: { id: existingCustomer.id },
+          data: {
+            password: hashedPassword,
+            name: name || existingCustomer.name,
+            phone: phone || existingCustomer.phone,
+          },
+          include: { loyalty: true },
+        });
+
+        const { password: _, ...customerWithoutPassword } = updatedCustomer;
+
+        return NextResponse.json({
+          customer: customerWithoutPassword,
+          message: 'Account upgraded successfully',
+        });
+      }
+
       return NextResponse.json(
         { error: 'An account with this email already exists' },
         { status: 400 }

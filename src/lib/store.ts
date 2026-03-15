@@ -99,7 +99,7 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: 'clothing-ctrl-cart',
+      name: 'clothing-ctrl-cart-v3',
       partialize: (state) => ({ items: state.items }),
     }
   )
@@ -288,7 +288,7 @@ export const useWishlistStore = create<WishlistStore>()(
       getTotalItems: () => get().items.length,
     }),
     {
-      name: 'clothing-ctrl-wishlist',
+      name: 'clothing-ctrl-wishlist-v3',
     }
   )
 );

@@ -1,23 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Star, 
-  Package, 
-  Heart, 
-  Settings, 
-  LogOut, 
+import {
+  User,
+  Mail,
+  Phone,
+  Package,
+  Heart,
+  Settings,
+  LogOut,
   ChevronRight,
   Crown,
   Award,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Medal,
+  ShoppingBag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/lib/store';
@@ -25,26 +26,26 @@ import { cn } from '@/lib/utils';
 
 // Tier colors and info
 const tierInfo = {
-  BRONZE: { 
-    color: 'from-amber-700 to-amber-900', 
+  BRONZE: {
+    color: 'from-amber-700 to-amber-900',
     textColor: 'text-amber-600',
     bgColor: 'bg-amber-900/20',
     borderColor: 'border-amber-700/30',
     nextTier: 'SILVER',
     pointsNeeded: 200,
-    icon: Award,
+    icon: Medal,
   },
-  SILVER: { 
-    color: 'from-gray-400 to-gray-600', 
+  SILVER: {
+    color: 'from-gray-400 to-gray-600',
     textColor: 'text-gray-400',
     bgColor: 'bg-gray-500/20',
     borderColor: 'border-gray-500/30',
     nextTier: 'GOLD',
     pointsNeeded: 500,
-    icon: Star,
+    icon: Award,
   },
-  GOLD: { 
-    color: 'from-yellow-500 to-yellow-700', 
+  GOLD: {
+    color: 'from-yellow-500 to-yellow-700',
     textColor: 'text-yellow-500',
     bgColor: 'bg-yellow-500/20',
     borderColor: 'border-yellow-500/30',
@@ -52,8 +53,8 @@ const tierInfo = {
     pointsNeeded: 1000,
     icon: Crown,
   },
-  PLATINUM: { 
-    color: 'from-purple-400 to-purple-700', 
+  PLATINUM: {
+    color: 'from-purple-400 to-purple-700',
     textColor: 'text-purple-400',
     bgColor: 'bg-purple-500/20',
     borderColor: 'border-purple-500/30',
@@ -63,9 +64,18 @@ const tierInfo = {
   },
 };
 
+interface CustomerStats {
+  totalOrders: number;
+  totalSpent: number;
+  loyaltyPoints: number;
+  loyaltyTier: string;
+}
+
 export default function AccountPage() {
   const router = useRouter();
   const { isLoggedIn, user, logout, fetchCurrentUser } = useAuthStore();
+  const [stats, setStats] = useState<CustomerStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -76,17 +86,41 @@ export default function AccountPage() {
     }
   }, [isLoggedIn, router, fetchCurrentUser]);
 
+  // Fetch real stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.email) return;
+
+      try {
+        const res = await fetch(`/api/customer/stats?email=${encodeURIComponent(user.email)}`);
+        const data = await res.json();
+        if (res.ok) {
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, [user?.email]);
+
   if (!isLoggedIn || !user) {
     return null;
   }
 
-  const tier = tierInfo[user.loyaltyTier as keyof typeof tierInfo] || tierInfo.BRONZE;
+  const currentTier = stats?.loyaltyTier || user.loyaltyTier || 'BRONZE';
+  const currentPoints = stats?.loyaltyPoints || user.loyaltyPoints || 0;
+
+  const tier = tierInfo[currentTier as keyof typeof tierInfo] || tierInfo.BRONZE;
   const TierIcon = tier.icon;
-  const progressPercent = tier.nextTier 
-    ? Math.min((user.loyaltyPoints / tier.pointsNeeded!) * 100, 100)
+  const progressPercent = tier.nextTier
+    ? Math.min((currentPoints / tier.pointsNeeded!) * 100, 100)
     : 100;
-  const pointsToNext = tier.nextTier 
-    ? Math.max(tier.pointsNeeded! - user.loyaltyPoints, 0)
+  const pointsToNext = tier.nextTier
+    ? Math.max(tier.pointsNeeded! - currentPoints, 0)
     : 0;
 
   const handleLogout = () => {
@@ -95,23 +129,23 @@ export default function AccountPage() {
   };
 
   const quickLinks = [
-    { 
-      href: '/account/orders', 
-      label: 'My Orders', 
-      icon: Package, 
-      description: 'Track and view your order history' 
+    {
+      href: '/account/orders',
+      label: 'My Orders',
+      icon: Package,
+      description: 'Track and view your order history'
     },
-    { 
-      href: '#wishlist', 
-      label: 'Wishlist', 
-      icon: Heart, 
-      description: 'Your saved items' 
+    {
+      href: '#wishlist',
+      label: 'Wishlist',
+      icon: Heart,
+      description: 'Your saved items'
     },
-    { 
-      href: '#settings', 
-      label: 'Account Settings', 
-      icon: Settings, 
-      description: 'Update your profile and preferences' 
+    {
+      href: '#settings',
+      label: 'Account Settings',
+      icon: Settings,
+      description: 'Update your profile and preferences'
     },
   ];
 
@@ -149,7 +183,7 @@ export default function AccountPage() {
                 </h2>
                 <div className={cn("flex items-center gap-1 mt-1", tier.textColor)}>
                   <TierIcon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{user.loyaltyTier} Member</span>
+                  <span className="text-sm font-medium">{currentTier} Member</span>
                 </div>
               </div>
 
@@ -197,16 +231,20 @@ export default function AccountPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <TierIcon className="w-5 h-5 text-white" />
                     <span className="text-white/80 text-sm font-medium uppercase tracking-wider">
-                      {user.loyaltyTier} Tier
+                      {currentTier} Tier
                     </span>
                   </div>
                   <p className="text-white text-3xl font-black">
-                    {user.loyaltyPoints.toLocaleString()} Points
+                    {currentPoints.toLocaleString()} Points
+                  </p>
+                  <p className="text-white/60 text-sm mt-1">
+                    ≈ KES {(currentPoints * 1).toLocaleString()} value
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-white/60 text-xs">Total Earned</p>
-                  <p className="text-white font-bold">{user.loyaltyPoints.toLocaleString()}</p>
+                  <p className="text-white/60 text-xs">Points Value</p>
+                  <p className="text-white font-bold text-lg">KES {(currentPoints * 1).toLocaleString()}</p>
+                  <p className="text-white/40 text-xs">1 point = KES 1</p>
                 </div>
               </div>
 
@@ -231,9 +269,40 @@ export default function AccountPage() {
               {/* Benefits */}
               <div className="mt-4 pt-4 border-t border-white/20">
                 <p className="text-white/80 text-xs">
-                  ⭐ Earn 1 point per KSh 100 spent • 🎁 Redeem for discounts • 🚚 Free shipping at {tier.nextTier || 'current'} tier
+                  Earn 1 point per KES 100 spent • 1 point = KES 1 discount • Free shipping at {tier.nextTier || 'current'} tier
                 </p>
               </div>
+            </motion.div>
+
+            {/* Redeem Points Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-zinc-900 border border-white/10 p-6"
+            >
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-400" />
+                Redeem Points
+              </h3>
+              <p className="text-white/60 text-sm mb-4">
+                Use your points as discount on your next order. Each point equals KES 1.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {[100, 250, 500, 1000].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant="outline"
+                    className="border-amber-400/30 text-amber-400 hover:bg-amber-400/10"
+                    disabled={currentPoints < amount}
+                  >
+                    Redeem {amount} pts (KES {amount})
+                  </Button>
+                ))}
+              </div>
+              <p className="text-white/40 text-xs mt-4">
+                Points will be automatically applied at checkout when you select "Use Points"
+              </p>
             </motion.div>
 
             {/* Quick Links */}
@@ -274,8 +343,10 @@ export default function AccountPage() {
               className="grid grid-cols-2 gap-4"
             >
               <div className="bg-zinc-900 border border-white/10 p-6 text-center">
-                <Package className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">0</p>
+                <ShoppingBag className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">
+                  {loadingStats ? '...' : (stats?.totalOrders || 0)}
+                </p>
                 <p className="text-white/50 text-sm">Total Orders</p>
               </div>
               <div className="bg-zinc-900 border border-white/10 p-6 text-center">
