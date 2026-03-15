@@ -5,7 +5,7 @@
  */
 
 import { db } from '@/lib/db';
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 
 /**
  * Hash a password using SHA-256 with salt
