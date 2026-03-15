@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { emitSyncEvent } from '@/lib/sync-events';
 import { sendOrderConfirmation } from '@/lib/notifications';
+import { sendNewOrderNotification } from '@/lib/email';
+import { getAdminsForNotifications } from '@/lib/admin-auth-server';
 import { v4 as uuidv4 } from 'uuid';
 
 // Generate unique order number: CC-YYYYMMDD-XXXX
@@ -211,6 +213,31 @@ export async function POST(request: Request) {
       currency: order.currency,
       orderId: order.id,
     });
+
+    // Send notification to all admins with verified notification emails
+    const admins = await getAdminsForNotifications();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    
+    // Send admin notifications (non-blocking to not delay response)
+    Promise.all(
+      admins.map(admin => 
+        sendNewOrderNotification({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          customerName: customer.name || customer.email.split('@')[0],
+          customerEmail: customer.email,
+          total: `${order.currency} ${order.total.toLocaleString()}`,
+          items: order.items.map(item => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            price: `${order.currency} ${item.price.toLocaleString()}`,
+          })),
+          adminEmail: admin.notificationEmail,
+          adminUserId: admin.id,
+          adminUrl: `${appUrl}/admin/orders`,
+        }).catch(err => console.error(`Failed to notify admin ${admin.email}:`, err))
+      )
+    );
 
     return NextResponse.json({
       order: {

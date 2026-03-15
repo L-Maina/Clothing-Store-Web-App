@@ -226,13 +226,24 @@ model SocialHandle {
 
 // Admin users
 model AdminUser {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String
-  password    String   // Hashed password
-  role        String   @default("ADMIN") // ADMIN, SUPER_ADMIN
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String
+  password          String    // Hashed password
+  
+  // Onboarding fields
+  isTemporaryPassword Boolean @default(false) // True if using initial temp password
+  onboardingComplete  Boolean @default(false) // True after completing onboarding flow
+  notificationEmail   String? // Preferred email for notifications (can differ from login email)
+  emailVerified       Boolean @default(false) // True after confirming notification email
+  
+  // Security tracking
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+  
+  role              String    @default("ADMIN") // ADMIN, SUPER_ADMIN
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 // Store settings (singleton - only one record should exist)
@@ -316,6 +327,20 @@ model NotificationLog {
   status       String   // PENDING, SENT, FAILED
   orderId      String?
   errorMessage String?
+  createdAt    DateTime @default(now())
+}
+
+// Email logs for admin notifications
+model EmailLog {
+  id           String   @id @default(cuid())
+  type         String   // ORDER_NEW, ORDER_STATUS, ADMIN_ONBOARDING, PASSWORD_RESET, EMAIL_VERIFICATION
+  recipient    String   // Email address
+  subject      String
+  status       String   // PENDING, SENT, FAILED
+  adminUserId  String?  // Reference to admin user if applicable
+  orderId      String?  // Reference to order if applicable
+  errorMessage String?
+  metadata     String?  // JSON for additional data
   createdAt    DateTime @default(now())
 }
 

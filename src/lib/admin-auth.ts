@@ -7,55 +7,96 @@ export interface AdminUser {
   email: string;
   name: string;
   role: 'ADMIN' | 'SUPER_ADMIN';
+  isTemporaryPassword: boolean;
+  onboardingComplete: boolean;
+  notificationEmail: string | null;
+  emailVerified: boolean;
 }
+
+// Onboarding step type
+export type OnboardingStep = 'password' | 'email' | 'verify' | 'complete';
 
 // Admin auth store
 interface AdminAuthStore {
   isAdminAuthenticated: boolean;
   adminUser: AdminUser | null;
+  onboardingStep: OnboardingStep | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   checkAuth: () => void;
+  setOnboardingStep: (step: OnboardingStep | null) => void;
+  updateAdminUser: (updates: Partial<AdminUser>) => void;
 }
-
-// Default admin credentials (in production, this would be in a database)
-const ADMIN_CREDENTIALS = {
-  email: 'admin@clothingctrl.com',
-  password: 'Admin@123', // Change this in production!
-  name: 'Admin',
-  role: 'SUPER_ADMIN' as const,
-};
 
 export const useAdminAuth = create<AdminAuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAdminAuthenticated: false,
       adminUser: null,
+      onboardingStep: null,
 
       login: async (email: string, password: string) => {
-        // Simple credential check (in production, use database with hashed passwords)
-        if (email.toLowerCase() === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-          const adminUser: AdminUser = {
-            id: 'admin-1',
-            email: ADMIN_CREDENTIALS.email,
-            name: ADMIN_CREDENTIALS.name,
-            role: ADMIN_CREDENTIALS.role,
-          };
-          set({ isAdminAuthenticated: true, adminUser });
+        try {
+          const response = await fetch('/api/admin/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok || !data.success) {
+            return { success: false, error: data.error || 'Invalid credentials' };
+          }
+          
+          const admin = data.admin as AdminUser;
+          
+          // Determine onboarding step
+          let onboardingStep: OnboardingStep | null = null;
+          if (admin.isTemporaryPassword) {
+            onboardingStep = 'password';
+          } else if (!admin.notificationEmail) {
+            onboardingStep = 'email';
+          } else if (!admin.emailVerified) {
+            onboardingStep = 'verify';
+          }
+          
+          set({ 
+            isAdminAuthenticated: true, 
+            adminUser: admin,
+            onboardingStep,
+          });
+          
           return { success: true };
+        } catch (error) {
+          console.error('Login error:', error);
+          return { success: false, error: 'An error occurred. Please try again.' };
         }
-        return { success: false, error: 'Invalid email or password' };
       },
 
       logout: () => {
-        set({ isAdminAuthenticated: false, adminUser: null });
+        set({ 
+          isAdminAuthenticated: false, 
+          adminUser: null,
+          onboardingStep: null,
+        });
       },
 
       checkAuth: () => {
-        // This will be called on mount to check persisted state
-        const state = useAdminAuth.getState();
+        const state = get();
         if (!state.isAdminAuthenticated) {
-          set({ adminUser: null });
+          set({ adminUser: null, onboardingStep: null });
+        }
+      },
+      
+      setOnboardingStep: (step) => {
+        set({ onboardingStep: step });
+      },
+      
+      updateAdminUser: (updates) => {
+        const current = get().adminUser;
+        if (current) {
+          set({ adminUser: { ...current, ...updates } });
         }
       },
     }),
@@ -64,6 +105,7 @@ export const useAdminAuth = create<AdminAuthStore>()(
       partialize: (state) => ({
         isAdminAuthenticated: state.isAdminAuthenticated,
         adminUser: state.adminUser,
+        onboardingStep: state.onboardingStep,
       }),
     }
   )

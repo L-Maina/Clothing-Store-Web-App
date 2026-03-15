@@ -355,7 +355,7 @@ export default function AdminProducts() {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-white/60 hover:text-white focus:text-white cursor-pointer"
-                                onClick={() => window.open(`/product/${product.id}`, '_blank')}
+                                onClick={() => window.open(`/shop?quickview=${product.id}`, '_blank')}
                               >
                                 <ExternalLink className="w-4 h-4 mr-2" />
                                 View on Store

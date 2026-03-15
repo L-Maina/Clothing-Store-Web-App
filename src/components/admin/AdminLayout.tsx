@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import {
   LayoutDashboard,
   Package,
@@ -38,6 +39,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAdminAuth } from '@/lib/admin-auth';
+import { AdminOnboarding } from './AdminOnboarding';
+
+// Lazy load QuickView for admin pages
+const QuickView = dynamic(
+  () => import('@/components/products/QuickView').then((mod) => mod.QuickView),
+  { ssr: false }
+);
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -408,6 +416,12 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* QuickView Modal - for admin product preview */}
+      <QuickView />
+      
+      {/* Onboarding Modal - shows when admin needs to complete setup */}
+      <AdminOnboarding />
     </div>
   );
 }

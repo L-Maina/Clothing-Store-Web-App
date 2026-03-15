@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shirt, Footprints, Gem, Filter, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/lib/store';
 
 interface Product {
   id: string;
@@ -52,7 +53,10 @@ const conditionFilters = ['All', 'New', 'Thrifting', 'Custom'];
 
 export default function ShopPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const brandFromUrl = searchParams.get('brand');
+  const quickViewId = searchParams.get('quickview');
+  const { openQuickView } = useUIStore();
   
   const [activeTab, setActiveTab] = useState<ProductType>('CLOTHES');
   const [activeSubcategory, setActiveSubcategory] = useState('All');
@@ -70,6 +74,18 @@ export default function ShopPage() {
       setIsFilterOpen(true); // Open filter drawer to show the brand is selected
     }
   }, [brandFromUrl]);
+
+  // Handle QuickView from URL parameter
+  useEffect(() => {
+    if (quickViewId && !isLoading) {
+      // Open QuickView modal for the product
+      openQuickView(quickViewId);
+      // Clear the URL parameter without navigation
+      const url = new URL(window.location.href);
+      url.searchParams.delete('quickview');
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [quickViewId, isLoading, openQuickView, router]);
 
   useEffect(() => {
     const fetchProducts = async () => {
