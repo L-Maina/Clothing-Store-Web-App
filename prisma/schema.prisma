@@ -293,19 +293,20 @@ model StoreSettings {
 
 // Community reviews - linked to orders for verification
 model CommunityReview {
-  id          String   @id @default(cuid())
-  customer    Customer @relation(fields: [customerId], references: [id])
-  customerId  String
-  orderId     String   // Must be from a delivered order
-  productId   String?
-  rating      Int      // 1-5
-  comment     String
-  imageUrl    String?  // Photo with product
-  username    String
-  verified    Boolean  @default(false) // Verified purchase
-  approved    Boolean  @default(false) // Admin approved
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  customer       Customer @relation(fields: [customerId], references: [id])
+  customerId     String
+  orderId        String   // Must be from a delivered order
+  productId      String?
+  rating         Int      // 1-5
+  comment        String
+  imageUrl       String?  // Photo with product
+  username       String
+  instagramHandle String? // Customer's Instagram handle
+  verified       Boolean  @default(false) // Verified purchase
+  approved       Boolean  @default(false) // Admin approved
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // Customer notifications

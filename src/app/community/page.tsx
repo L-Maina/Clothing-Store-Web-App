@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Instagram, Camera, Heart, MessageCircle, Share2,
-  Star, CheckCircle, X, Upload, ChevronDown, Sparkles, User, Award, Loader2
+  Star, CheckCircle, X, Upload, ChevronDown, Sparkles, User, Award, Loader2, RefreshCw, ImagePlus
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -45,6 +45,7 @@ interface CommunityReview {
   comment: string;
   imageUrl: string | null;
   username: string;
+  instagramHandle: string | null;
   verified: boolean;
   productId: string | null;
   customerName: string | null;
@@ -71,6 +72,7 @@ export default function CommunityPage() {
   const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
   const [reviews, setReviews] = useState<CommunityReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'gallery' | 'reviews'>('gallery');
   
   // Review modal state
@@ -82,35 +84,44 @@ export default function CommunityPage() {
   const [comment, setComment] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [username, setUsername] = useState('');
+  const [instagramHandle, setInstagramHandle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   
   const { isLoggedIn, user, openLoginModal } = useAuthStore();
   const { toast } = useToast();
 
   // Fetch photos and reviews
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
+  const fetchData = useCallback(async (showRefreshLoader = false) => {
+    try {
+      if (showRefreshLoader) {
+        setIsRefreshing(true);
+      } else {
         setIsLoading(true);
-        
-        // Fetch photos
-        const photosRes = await fetch('/api/community');
-        const photosData = await photosRes.json();
-        setPhotos(Array.isArray(photosData) ? photosData : []);
-        
-        // Fetch reviews
-        const reviewsRes = await fetch('/api/community/reviews');
-        const reviewsData = await reviewsRes.json();
-        setReviews(reviewsData.reviews || []);
-      } catch (error) {
-        console.error('Failed to fetch community data:', error);
-      } finally {
-        setIsLoading(false);
       }
-    };
-    fetchData();
+      
+      // Fetch photos
+      const photosRes = await fetch('/api/community');
+      const photosData = await photosRes.json();
+      setPhotos(Array.isArray(photosData) ? photosData : []);
+      
+      // Fetch reviews
+      const reviewsRes = await fetch('/api/community/reviews');
+      const reviewsData = await reviewsRes.json();
+      setReviews(reviewsData.reviews || []);
+    } catch (error) {
+      console.error('Failed to fetch community data:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Fetch delivered orders when opening review modal
   const fetchDeliveredOrders = useCallback(async () => {
@@ -183,6 +194,7 @@ export default function CommunityPage() {
           comment,
           imageUrl: imageUrl || null,
           username,
+          instagramHandle: instagramHandle || null,
         }),
       });
 
@@ -205,6 +217,7 @@ export default function CommunityPage() {
       setComment('');
       setImageUrl('');
       setUsername('');
+      setInstagramHandle('');
     } catch (error) {
       toast({
         title: 'Error',
@@ -230,6 +243,92 @@ export default function CommunityPage() {
     ));
   };
 
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Only JPEG, PNG, WebP, and GIF images are allowed.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Maximum file size is 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'reviews');
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      setImageUrl(data.url);
+      toast({
+        title: 'Photo uploaded!',
+        description: 'Your photo has been uploaded successfully.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to upload photo',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Handle drag events
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileUpload(e.target.files[0]);
+    }
+  };
+
   return (
     <>
       <main className="pt-24 pb-12">
@@ -248,13 +347,24 @@ export default function CommunityPage() {
                 </div>
                 <p className="text-white/50 mt-2">Style inspiration from our amazing customers</p>
               </div>
-              <Button
-                onClick={handleOpenReviewModal}
-                className="bg-amber-400 text-black hover:bg-amber-300 font-bold"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Share Your Style
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => fetchData(true)}
+                  disabled={isRefreshing}
+                  className="border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button
+                  onClick={handleOpenReviewModal}
+                  className="bg-amber-400 text-black hover:bg-amber-300 font-bold"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Share Your Style
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -416,8 +526,19 @@ export default function CommunityPage() {
                               <User className="w-5 h-5 text-white/40" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-white font-medium">@{review.username}</p>
+                                {'instagramHandle' in review && review.instagramHandle && (
+                                  <a 
+                                    href={`https://instagram.com/${review.instagramHandle.replace('@', '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-xs text-pink-400 hover:text-pink-300 transition-colors"
+                                  >
+                                    <Instagram className="w-3 h-3" />
+                                    {review.instagramHandle}
+                                  </a>
+                                )}
                                 {review.verified && (
                                   <span className="flex items-center gap-1 text-xs text-green-400">
                                     <CheckCircle className="w-3 h-3" />
@@ -615,6 +736,50 @@ export default function CommunityPage() {
                   />
                 </div>
 
+                {/* Instagram Integration Section */}
+                <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-pink-500/20 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <Instagram className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold">Tag Us on Instagram!</h4>
+                      <p className="text-white/50 text-xs">Get featured on our page</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href="https://instagram.com/clothing.ctrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                      <Instagram className="w-4 h-4" />
+                      @clothing.ctrl
+                    </a>
+                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 border border-white/10 text-white text-sm font-medium rounded-lg">
+                      #ClothingCtrlStyle
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white/60 flex items-center gap-2">
+                      <Instagram className="w-4 h-4 text-pink-400" />
+                      Your Instagram Handle
+                    </Label>
+                    <Input
+                      value={instagramHandle}
+                      onChange={(e) => setInstagramHandle(e.target.value)}
+                      placeholder="@your_instagram"
+                      className="bg-zinc-800 border-white/10 text-white placeholder:text-white/40"
+                    />
+                    <p className="text-white/40 text-xs flex items-center gap-1">
+                      <span>📸 Post on Instagram, tag us and use the hashtag, then add your handle above!</span>
+                    </p>
+                  </div>
+                </div>
+
                 {/* Rating */}
                 <div className="space-y-2">
                   <Label className="text-white/60">Rating *</Label>
@@ -624,86 +789,100 @@ export default function CommunityPage() {
                   </div>
                 </div>
 
-                {/* Photo URL */}
+                {/* Photo Upload */}
                 <div className="space-y-3">
                   <Label className="text-white/60">Photo (optional)</Label>
-                  
-                  {/* Instagram URL Auto-fetch */}
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="Paste Instagram post link or image URL"
-                        className="flex-1 bg-zinc-800 border-white/10 text-white placeholder:text-white/40"
-                      />
-                      {(imageUrl.includes('instagram.com') || imageUrl.includes('instagr.am')) && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={isLoadingImage}
-                          onClick={async () => {
-                            setIsLoadingImage(true);
-                            try {
-                              const res = await fetch(`/api/instagram-image?url=${encodeURIComponent(imageUrl)}`);
-                              const data = await res.json();
-                              if (data.imageUrl) {
-                                setImageUrl(data.imageUrl);
-                                toast({
-                                  title: 'Image found!',
-                                  description: 'Instagram image loaded successfully',
-                                });
-                              } else {
-                                toast({
-                                  title: 'Could not load image',
-                                  description: data.hint || 'Try using a direct image URL',
-                                  variant: 'destructive',
-                                });
-                              }
-                            } catch {
-                              toast({
-                                title: 'Error',
-                                description: 'Failed to fetch Instagram image',
-                                variant: 'destructive',
-                              });
-                            } finally {
-                              setIsLoadingImage(false);
-                            }
-                          }}
-                          className="border-amber-400/30 text-amber-400 hover:bg-amber-400/10"
-                        >
-                          {isLoadingImage ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            'Load'
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                    
-                    {/* Image Preview */}
-                    {imageUrl && !imageUrl.includes('instagram.com') && !imageUrl.includes('instagr.am') && (
-                      <div className="rounded-lg overflow-hidden bg-zinc-800 border border-white/10">
-                        <img 
-                          src={imageUrl} 
-                          alt="Preview" 
-                          className="w-full h-32 object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.parentElement!.innerHTML = '<div class="w-full h-32 flex items-center justify-center text-red-400 text-sm p-4 text-center">Image failed to load. Check the URL.</div>';
-                          }}
-                        />
+
+                  {/* Drag & Drop Upload Area */}
+                  <div
+                    className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
+                      dragActive
+                        ? 'border-amber-400 bg-amber-400/10'
+                        : imageUrl
+                          ? 'border-green-500/50 bg-green-500/5'
+                          : 'border-white/20 bg-zinc-800/50 hover:border-white/40'
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      type="file"
+                      id="photo-upload"
+                      className="hidden"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleFileInput}
+                    />
+
+                    {isUploading ? (
+                      <div className="flex flex-col items-center justify-center py-4">
+                        <Loader2 className="w-8 h-8 text-amber-400 animate-spin mb-2" />
+                        <p className="text-white/60 text-sm">Uploading...</p>
                       </div>
+                    ) : imageUrl ? (
+                      <div className="space-y-3">
+                        <div className="relative rounded-lg overflow-hidden">
+                          <img
+                            src={imageUrl}
+                            alt="Preview"
+                            className="w-full h-40 object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setImageUrl('')}
+                            className="absolute top-2 right-2 p-1 bg-black/60 rounded-full hover:bg-black/80 transition-colors"
+                          >
+                            <X className="w-4 h-4 text-white" />
+                          </button>
+                        </div>
+                        <p className="text-green-400 text-xs text-center flex items-center justify-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Photo uploaded successfully
+                        </p>
+                      </div>
+                    ) : (
+                      <label
+                        htmlFor="photo-upload"
+                        className="flex flex-col items-center justify-center cursor-pointer py-4"
+                      >
+                        <ImagePlus className="w-10 h-10 text-white/40 mb-3" />
+                        <p className="text-white font-medium mb-1">
+                          Drag & drop a photo here
+                        </p>
+                        <p className="text-white/40 text-sm mb-2">
+                          or click to browse
+                        </p>
+                        <p className="text-white/30 text-xs">
+                          JPEG, PNG, WebP, GIF up to 5MB
+                        </p>
+                      </label>
                     )}
-                    
-                    <div className="text-white/40 text-xs space-y-1">
-                      <p>💡 <strong>Easy options:</strong></p>
-                      <ul className="list-disc list-inside space-y-0.5 text-white/30">
-                        <li>Paste an Instagram post link and click "Load" to auto-get the image</li>
-                        <li>Or paste any direct image URL</li>
-                      </ul>
+                  </div>
+
+                  {/* Alternative: URL Input */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-white/10" />
                     </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-zinc-900 px-2 text-white/40">or paste image URL</span>
+                    </div>
+                  </div>
+
+                  <Input
+                    value={imageUrl && !imageUrl.startsWith('/uploads/') ? imageUrl : ''}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="bg-zinc-800 border-white/10 text-white placeholder:text-white/40"
+                  />
+
+                  <div className="text-white/40 text-xs">
+                    <p>💡 Tip: Take a screenshot of your Instagram photo and upload it directly above!</p>
                   </div>
                 </div>
 
