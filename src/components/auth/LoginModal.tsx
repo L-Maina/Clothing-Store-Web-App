@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, Eye, EyeOff, Chrome, Loader2, Phone, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore, useCustomerStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { validateEmailSimple } from '@/lib/email-validation';
+
+// Apple Icon Component
+function AppleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+    </svg>
+  );
+}
 
 export function LoginModal() {
   const { isLoginModalOpen, closeLoginModal, login, signup } = useAuthStore();
@@ -17,6 +26,7 @@ export function LoginModal() {
   const [error, setError] = useState('');
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const [emailStatus, setEmailStatus] = useState<'valid' | 'invalid' | 'checking' | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -24,6 +34,52 @@ export function LoginModal() {
     password: '',
     phone: '',
   });
+
+  // Check for OAuth callback on mount
+  useEffect(() => {
+    // Check for auth success/error from OAuth redirect
+    const params = new URLSearchParams(window.location.search);
+    const authSuccess = params.get('auth_success');
+    const authError = params.get('auth_error');
+    
+    if (authSuccess) {
+      // Read auth user from cookie
+      const authUser = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('auth_user='))
+        ?.split('=')[1];
+      
+      if (authUser) {
+        try {
+          const user = JSON.parse(decodeURIComponent(authUser));
+          useAuthStore.setState({
+            isLoggedIn: true,
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              phone: user.phone,
+              loyaltyPoints: user.loyaltyPoints,
+              loyaltyTier: user.loyaltyTier,
+            },
+          });
+          setCustomer(user.email, user.name || undefined);
+          addLoyaltyPoints(user.loyaltyPoints);
+          
+          // Clear the cookie and URL params
+          document.cookie = 'auth_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          window.history.replaceState({}, '', window.location.pathname);
+        } catch {
+          console.error('Failed to parse auth user');
+        }
+      }
+    }
+    
+    if (authError) {
+      setError(`Authentication failed: ${authError}`);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [setCustomer, addLoyaltyPoints]);
 
   // Check email validity on change
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,6 +154,46 @@ export function LoginModal() {
     setError('');
     setEmailSuggestion(null);
     setEmailStatus(null);
+  };
+
+  // Handle Google Sign In
+  const handleGoogleSignIn = async () => {
+    setSocialLoading('google');
+    try {
+      // Check if Google OAuth is configured
+      const res = await fetch('/api/auth/google');
+      
+      if (res.redirected) {
+        // OAuth flow started, will redirect to Google
+        return;
+      }
+      
+      const data = await res.json();
+      if (data.error) {
+        setError(data.message || 'Google Sign In is not configured. Please use email/password.');
+      }
+    } catch {
+      setError('Failed to initiate Google Sign In. Please try again.');
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
+  // Handle Apple Sign In
+  const handleAppleSignIn = async () => {
+    setSocialLoading('apple');
+    try {
+      const res = await fetch('/api/auth/apple');
+      const data = await res.json();
+      
+      if (data.error) {
+        setError('Apple Sign In requires Apple Developer account setup. Please use email/password or Google Sign In.');
+      }
+    } catch {
+      setError('Failed to initiate Apple Sign In. Please try again.');
+    } finally {
+      setSocialLoading(null);
+    }
   };
 
   return (
@@ -263,7 +359,7 @@ export function LoginModal() {
 
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !!socialLoading}
                 className="w-full bg-amber-400 hover:!bg-amber-300 text-black font-bold py-3 rounded-lg transition-colors"
               >
                 {isLoading ? (
@@ -287,13 +383,35 @@ export function LoginModal() {
               </div>
 
               {/* Social Login */}
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-3 border border-white/10 rounded-lg py-3 text-white hover:bg-white/5 transition-colors"
-              >
-                <Chrome className="w-5 h-5" />
-                Continue with Google
-              </button>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading || !!socialLoading}
+                  className="w-full flex items-center justify-center gap-3 border border-white/10 rounded-lg py-3 text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                >
+                  {socialLoading === 'google' ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Chrome className="w-5 h-5" />
+                  )}
+                  Continue with Google
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAppleSignIn}
+                  disabled={isLoading || !!socialLoading}
+                  className="w-full flex items-center justify-center gap-3 border border-white/10 rounded-lg py-3 text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                >
+                  {socialLoading === 'apple' ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <AppleIcon className="w-5 h-5" />
+                  )}
+                  Continue with Apple
+                </button>
+              </div>
             </form>
 
             {/* Footer */}
