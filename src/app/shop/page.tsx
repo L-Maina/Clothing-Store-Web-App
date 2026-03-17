@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shirt, Footprints, Gem, Filter, X, ArrowLeft } from 'lucide-react';
@@ -51,7 +51,7 @@ const brandFilters = [
 
 const conditionFilters = ['All', 'New', 'Thrifting', 'Custom'];
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const brandFromUrl = searchParams.get('brand');
@@ -373,5 +373,27 @@ export default function ShopPage() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex-1 pt-24 pb-12">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="mb-8">
+            <div className="h-4 w-24 bg-zinc-800 animate-pulse mb-4" />
+            <div className="h-10 w-32 bg-zinc-800 animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4] bg-zinc-800 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </main>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }
